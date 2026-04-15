@@ -1,43 +1,35 @@
-/* Reservations section: mobile card view with priority ordering.
+/* Prenotazioni section: unified card view with live filters (mobile + desktop).
  *
- * Wraps the global updateReservationsHistory() so that every time the
- * "Prenotazioni" table is rendered we ALSO paint a card-oriented view
- * that is visible on small screens. The table view stays on desktop.
- *
- * Priority order (topmost = most relevant):
- *   1. In corso oggi (check-in <= today < check-out)
- *   2. Check-in nei prossimi 7 giorni
- *   3. Check-out nei prossimi 7 giorni
- *   4. Future oltre 7 giorni, ordinate per data di arrivo
- *   5. Passate (più recenti prima)
+ * Wraps the global updateReservationsHistory() so every table-render ALSO paints
+ * a rich, priority-ordered card grid with:
+ *   - stats chips (active / soon / future / past)
+ *   - two live search fields (cliente, appartamento)
+ *   - status filter chips (Tutte / In corso / Imminenti / Future / Passate)
+ *   - clickable cards (tap to edit)
  */
 (function () {
   const MS_DAY = 86400000;
 
+  let lastReservations = [];
+  let currentStatusFilter = 'all';
+  let clientFilterText = '';
+  let roomFilterText = '';
+
+  // --- Helpers ---
   function parseDate(s) {
     if (!s) return null;
     const d = new Date(s);
     return isNaN(d.getTime()) ? null : d;
   }
-
   function todayStart() {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
     return d;
   }
-
   function formatShortDate(s) {
     const d = parseDate(s);
-    if (!d) return '';
-    return d.toLocaleDateString('it-IT', { day: '2-digit', month: 'short' });
+    return d ? d.toLocaleDateString('it-IT', { day: '2-digit', month: 'short' }) : '';
   }
-
-  function formatFullDate(s) {
-    const d = parseDate(s);
-    if (!d) return '';
-    return d.toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' });
-  }
-
   function daysBetween(a, b) {
     return Math.round((b - a) / MS_DAY);
   }
@@ -46,43 +38,25 @@
     const today = todayStart();
     const ci = parseDate(res.check_in_date);
     const co = parseDate(res.check_out_date);
-    if (!ci || !co) return { bucket: 5, key: 0, status: 'unknown', label: '' };
+    if (!ci || !co) return { bucket: 'past', key: 0, label: '' };
 
-    // In corso: check-in passato, check-out futuro o oggi
-    if (ci <= today && co > today) {
-      return { bucket: 0, key: co.getTime(), status: 'active', label: 'In corso' };
-    }
-    // Check-in oggi
-    if (daysBetween(today, ci) === 0) {
-      return { bucket: 1, key: ci.getTime(), status: 'check-in-today', label: 'Arriva oggi' };
-    }
-    // Check-out oggi
-    if (daysBetween(today, co) === 0) {
-      return { bucket: 1, key: co.getTime(), status: 'check-out-today', label: 'Parte oggi' };
-    }
-    // In arrivo entro 7 giorni
-    const daysToCI = daysBetween(today, ci);
-    if (daysToCI > 0 && daysToCI <= 7) {
-      return { bucket: 2, key: ci.getTime(), status: 'upcoming', label: `Tra ${daysToCI}g` };
-    }
-    // In partenza entro 7 giorni
-    const daysToCO = daysBetween(today, co);
-    if (daysToCO > 0 && daysToCO <= 7) {
-      return { bucket: 2, key: co.getTime(), status: 'leaving', label: `Parte tra ${daysToCO}g` };
-    }
-    // Future oltre 7 giorni
-    if (ci > today) {
-      return { bucket: 3, key: ci.getTime(), status: 'future', label: formatShortDate(res.check_in_date) };
-    }
-    // Passate
-    return { bucket: 4, key: -ci.getTime(), status: 'past', label: 'Passata' };
+    if (ci <= today && co > today) return { bucket: 'active', key: co.getTime(), label: 'In corso' };
+    if (daysBetween(today, ci) === 0) return { bucket: 'soon', key: ci.getTime(), label: 'Arriva oggi' };
+    if (daysBetween(today, co) === 0) return { bucket: 'soon', key: co.getTime(), label: 'Parte oggi' };
+    const dCi = daysBetween(today, ci);
+    if (dCi > 0 && dCi <= 7) return { bucket: 'soon', key: ci.getTime(), label: `Tra ${dCi}g` };
+    const dCo = daysBetween(today, co);
+    if (dCo > 0 && dCo <= 7) return { bucket: 'soon', key: co.getTime(), label: `Parte tra ${dCo}g` };
+    if (ci > today) return { bucket: 'future', key: ci.getTime(), label: formatShortDate(res.check_in_date) };
+    return { bucket: 'past', key: -ci.getTime(), label: 'Passata' };
   }
 
-  function sortReservations(reservations) {
-    return reservations.slice().sort(function (a, b) {
+  function sortReservations(list) {
+    const order = { active: 0, soon: 1, future: 2, past: 3 };
+    return list.slice().sort(function (a, b) {
       const ca = classifyReservation(a);
       const cb = classifyReservation(b);
-      if (ca.bucket !== cb.bucket) return ca.bucket - cb.bucket;
+      if (order[ca.bucket] !== order[cb.bucket]) return order[ca.bucket] - order[cb.bucket];
       return ca.key - cb.key;
     });
   }
@@ -92,203 +66,266 @@
     return String(notes).replace(/\s*\|\s*Preventivo: €[0-9.]+/, '').trim();
   }
 
-  function createBadge(text, variant) {
-    const span = document.createElement('span');
-    span.className = 'r-badge r-badge-' + (variant || 'default');
-    span.textContent = text;
-    return span;
+  function createEl(tag, className, text) {
+    const el = document.createElement(tag);
+    if (className) el.className = className;
+    if (text !== undefined && text !== null) el.textContent = String(text);
+    return el;
   }
 
   function createIconBadge(iconClass, text, variant) {
-    const span = document.createElement('span');
-    span.className = 'r-badge r-badge-' + (variant || 'default');
-    const i = document.createElement('i');
-    i.className = iconClass;
+    const span = createEl('span', 'r-badge r-badge-' + (variant || 'default'));
+    const i = createEl('i', iconClass);
     span.appendChild(i);
-    if (text) {
-      const t = document.createTextNode(' ' + text);
-      span.appendChild(t);
-    }
+    if (text) span.appendChild(document.createTextNode(' ' + text));
     return span;
   }
 
+  // --- Card ---
   function buildCard(reservation) {
-    const card = document.createElement('article');
-    card.className = 'r-card';
-    card.dataset.id = reservation.id;
-
     const info = classifyReservation(reservation);
-    card.classList.add('r-card--' + info.status);
-
+    const card = createEl('article', 'r-card r-card--' + info.bucket);
+    card.dataset.id = reservation.id;
     const color = (reservation.reservation_color || 'yellow').toLowerCase();
     card.classList.add('r-card--color-' + color);
 
-    // --- Header row: status label + client name + num people ---
-    const header = document.createElement('header');
-    header.className = 'r-card__header';
-
+    // Header
+    const header = createEl('header', 'r-card__header');
     if (info.label) {
-      const statusPill = document.createElement('span');
-      statusPill.className = 'r-card__status';
-      statusPill.textContent = info.label;
-      header.appendChild(statusPill);
+      const pill = createEl('span', 'r-card__status', info.label);
+      header.appendChild(pill);
     }
-
-    const title = document.createElement('h6');
-    title.className = 'r-card__title';
-    title.textContent = reservation.client_name || 'Cliente';
+    const title = createEl('h6', 'r-card__title', reservation.client_name || 'Cliente');
     header.appendChild(title);
-
     const numPeople = reservation.num_people ||
       (parseInt(reservation.adults || 0) + parseInt(reservation.children || 0)) || 1;
-    const people = document.createElement('span');
-    people.className = 'r-card__people';
+    const people = createEl('span', 'r-card__people');
     people.innerHTML = '<i class="fas fa-user"></i> ' + numPeople;
     header.appendChild(people);
-
     card.appendChild(header);
 
-    // --- Apartment + dates ---
-    const meta = document.createElement('div');
-    meta.className = 'r-card__meta';
-
-    const apt = document.createElement('span');
-    apt.className = 'r-card__apt';
+    // Meta: apartment + dates
+    const meta = createEl('div', 'r-card__meta');
+    const apt = createEl('span', 'r-card__apt');
     apt.innerHTML = '<i class="fas fa-building"></i> ' +
       (reservation.room_number || '-') +
       (reservation.room_type ? ' · <span class="r-card__apt-type">' + reservation.room_type + '</span>' : '');
     meta.appendChild(apt);
-
-    const dates = document.createElement('span');
-    dates.className = 'r-card__dates';
+    const dates = createEl('span', 'r-card__dates');
     dates.innerHTML = '<i class="far fa-calendar"></i> ' +
       formatShortDate(reservation.check_in_date) + ' → ' +
       formatShortDate(reservation.check_out_date);
     meta.appendChild(dates);
-
+    if (reservation.reference) {
+      const ref = createEl('span', 'r-card__ref');
+      ref.innerHTML = '<i class="fas fa-tag"></i> ' + String(reservation.reference);
+      meta.appendChild(ref);
+    }
     card.appendChild(meta);
 
-    // --- Badges: spiaggia, caparra, riferimento, pagamento ---
-    const badges = document.createElement('div');
-    badges.className = 'r-card__badges';
-
+    // Badges
+    const badges = createEl('div', 'r-card__badges');
     const isPaid = reservation.is_paid == 1 || reservation.is_paid === true;
-    badges.appendChild(
-      isPaid
-        ? createIconBadge('fas fa-check', 'Pagato', 'success')
-        : createIconBadge('fas fa-circle', 'Da pagare', 'danger')
-    );
-    if (reservation.has_beach == 1) {
-      badges.appendChild(createIconBadge('fas fa-umbrella-beach', 'Spiaggia', 'info'));
-    }
-    if (reservation.has_deposit == 1) {
-      badges.appendChild(createIconBadge('fas fa-money-bill-wave', 'Caparra', 'warning'));
-    }
-    if (reservation.reference) {
-      badges.appendChild(createIconBadge('fas fa-tag', reservation.reference, 'default'));
-    }
-
+    badges.appendChild(isPaid
+      ? createIconBadge('fas fa-check', 'Pagato', 'success')
+      : createIconBadge('fas fa-circle', 'Da pagare', 'danger'));
+    if (reservation.has_beach == 1) badges.appendChild(createIconBadge('fas fa-umbrella-beach', 'Spiaggia', 'info'));
+    if (reservation.has_deposit == 1) badges.appendChild(createIconBadge('fas fa-money-bill-wave', 'Caparra', 'warning'));
     card.appendChild(badges);
 
-    // --- Payment summary (only what matters) ---
+    // Payment summary
     const cash = parseFloat(reservation.cash_amount) || 0;
     const transfer = parseFloat(reservation.transfer_amount) || 0;
     const estimate = parseFloat(reservation.estimate_amount) || 0;
     const totalPaid = cash + transfer;
-
     if (estimate > 0 || totalPaid > 0) {
-      const pay = document.createElement('div');
-      pay.className = 'r-card__pay';
+      const pay = createEl('div', 'r-card__pay');
       const parts = [];
-      if (estimate > 0) {
-        parts.push('<span class="r-card__pay-estimate">€' + Math.round(estimate) + '</span>');
-      }
-      if (totalPaid > 0) {
-        parts.push('<span class="r-card__pay-paid">Incassato €' + Math.round(totalPaid) + '</span>');
-      }
+      if (estimate > 0) parts.push('<span class="r-card__pay-estimate">Preventivo €' + Math.round(estimate) + '</span>');
+      if (totalPaid > 0) parts.push('<span class="r-card__pay-paid">Incassato €' + Math.round(totalPaid) + '</span>');
       pay.innerHTML = parts.join(' · ');
       card.appendChild(pay);
     }
 
-    // --- Notes (short, one-line) ---
+    // Notes
     const notes = cleanNotes(reservation.notes);
     if (notes) {
-      const n = document.createElement('p');
-      n.className = 'r-card__notes';
-      n.textContent = notes;
+      const n = createEl('p', 'r-card__notes', notes);
       card.appendChild(n);
     }
 
-    // --- Tap to edit ---
+    // Action buttons (visible on hover / always on mobile)
+    const actions = createEl('div', 'r-card__actions');
+    const editBtn = createEl('button', 'r-card__action r-card__action--edit');
+    editBtn.type = 'button';
+    editBtn.setAttribute('aria-label', 'Modifica');
+    editBtn.innerHTML = '<i class="fas fa-pen"></i>';
+    editBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (typeof window.editReservation === 'function') window.editReservation(reservation.id);
+    });
+    actions.appendChild(editBtn);
+
+    const delBtn = createEl('button', 'r-card__action r-card__action--delete');
+    delBtn.type = 'button';
+    delBtn.setAttribute('aria-label', 'Elimina');
+    delBtn.innerHTML = '<i class="fas fa-trash"></i>';
+    delBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (typeof window.deleteReservation === 'function') window.deleteReservation(reservation.id);
+    });
+    actions.appendChild(delBtn);
+    card.appendChild(actions);
+
     card.addEventListener('click', function () {
-      if (typeof window.editReservation === 'function') {
-        window.editReservation(reservation.id);
-      }
+      if (typeof window.editReservation === 'function') window.editReservation(reservation.id);
     });
 
     return card;
   }
 
-  function renderSection(container, title, reservations) {
-    if (reservations.length === 0) return;
-    const section = document.createElement('section');
-    section.className = 'r-cards-section';
-
-    const h = document.createElement('h5');
-    h.className = 'r-cards-section__title';
-    h.textContent = title;
-    section.appendChild(h);
-
-    reservations.forEach(function (r) {
-      section.appendChild(buildCard(r));
-    });
-
+  // --- Render ---
+  function renderSection(container, title, list) {
+    if (!list.length) return;
+    const section = createEl('section', 'r-cards-section');
+    section.appendChild(createEl('h5', 'r-cards-section__title', title));
+    const grid = createEl('div', 'r-cards-grid');
+    list.forEach(function (r) { grid.appendChild(buildCard(r)); });
+    section.appendChild(grid);
     container.appendChild(section);
   }
 
-  function renderCards(reservations) {
+  function filteredList() {
+    const cSearch = clientFilterText.toLowerCase();
+    const rSearch = roomFilterText.toLowerCase();
+    return lastReservations.filter(function (r) {
+      if (currentStatusFilter !== 'all') {
+        const b = classifyReservation(r).bucket;
+        if (b !== currentStatusFilter) return false;
+      }
+      if (cSearch) {
+        const n = String(r.client_name || '').toLowerCase();
+        if (!n.includes(cSearch)) return false;
+      }
+      if (rSearch) {
+        const rn = String(r.room_number || '').toLowerCase();
+        if (!rn.includes(rSearch)) return false;
+      }
+      return true;
+    });
+  }
+
+  function updateStats() {
+    const counts = { active: 0, soon: 0, future: 0, past: 0 };
+    lastReservations.forEach(function (r) {
+      const b = classifyReservation(r).bucket;
+      if (counts[b] !== undefined) counts[b]++;
+    });
+    const byId = function (id) { return document.getElementById(id); };
+    if (byId('stat-active')) byId('stat-active').textContent = counts.active;
+    if (byId('stat-soon'))   byId('stat-soon').textContent   = counts.soon;
+    if (byId('stat-future')) byId('stat-future').textContent = counts.future;
+    if (byId('stat-past'))   byId('stat-past').textContent   = counts.past;
+
+    // Highlight the matching stat chip as active
+    document.querySelectorAll('.chip-stat').forEach(function (chip) {
+      chip.classList.toggle('is-active', chip.dataset.filter === currentStatusFilter);
+    });
+  }
+
+  function renderCards() {
     const container = document.getElementById('reservations-card-view');
     if (!container) return;
     container.innerHTML = '';
 
-    if (!reservations || reservations.length === 0) {
-      const empty = document.createElement('div');
-      empty.className = 'r-cards-empty';
-      empty.textContent = 'Nessuna prenotazione trovata';
-      container.appendChild(empty);
+    const visible = sortReservations(filteredList());
+    if (!visible.length) {
+      container.appendChild(createEl('div', 'r-cards-empty', 'Nessuna prenotazione trovata'));
+      updateStats();
       return;
     }
 
-    const sorted = sortReservations(reservations);
-    // Group by bucket for section headers
-    const groups = { active: [], today: [], soon: [], future: [], past: [] };
-    sorted.forEach(function (r) {
-      const info = classifyReservation(r);
-      if (info.bucket === 0) groups.active.push(r);
-      else if (info.bucket === 1) groups.today.push(r);
-      else if (info.bucket === 2) groups.soon.push(r);
-      else if (info.bucket === 3) groups.future.push(r);
-      else groups.past.push(r);
+    // Group by bucket
+    const groups = { active: [], soon: [], future: [], past: [] };
+    visible.forEach(function (r) {
+      const b = classifyReservation(r).bucket;
+      (groups[b] || groups.past).push(r);
     });
 
-    renderSection(container, 'In corso', groups.active);
-    renderSection(container, 'Oggi', groups.today);
-    renderSection(container, 'Questa settimana', groups.soon);
-    renderSection(container, 'Prossime', groups.future);
-    renderSection(container, 'Storico', groups.past);
+    // When a specific filter is active, render without section headers
+    if (currentStatusFilter !== 'all') {
+      const grid = createEl('div', 'r-cards-grid');
+      visible.forEach(function (r) { grid.appendChild(buildCard(r)); });
+      container.appendChild(grid);
+    } else {
+      renderSection(container, 'In corso', groups.active);
+      renderSection(container, 'Questa settimana', groups.soon);
+      renderSection(container, 'Prossime', groups.future);
+      renderSection(container, 'Storico', groups.past);
+    }
+
+    updateStats();
+  }
+
+  // --- Wire filters ---
+  function wireFilters() {
+    const clientInput = document.getElementById('history-client-search');
+    const roomInput = document.getElementById('history-room-search');
+    let t = null;
+    if (clientInput) {
+      clientInput.addEventListener('input', function () {
+        clearTimeout(t);
+        t = setTimeout(function () { clientFilterText = clientInput.value.trim(); renderCards(); }, 150);
+      });
+    }
+    if (roomInput) {
+      roomInput.addEventListener('input', function () {
+        clearTimeout(t);
+        t = setTimeout(function () { roomFilterText = roomInput.value.trim(); renderCards(); }, 150);
+      });
+    }
+
+    // Status chip filters
+    document.querySelectorAll('.chip-filter[data-filter]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        currentStatusFilter = btn.dataset.filter;
+        document.querySelectorAll('.chip-filter').forEach(function (b) {
+          b.classList.toggle('is-active', b === btn);
+          b.setAttribute('aria-selected', b === btn ? 'true' : 'false');
+        });
+        renderCards();
+      });
+    });
+
+    // Stats chips act as filters too
+    document.querySelectorAll('.chip-stat[data-filter]').forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        const f = chip.dataset.filter;
+        currentStatusFilter = (currentStatusFilter === f) ? 'all' : f;
+        document.querySelectorAll('.chip-filter').forEach(function (b) {
+          const match = b.dataset.filter === currentStatusFilter;
+          b.classList.toggle('is-active', match);
+          b.setAttribute('aria-selected', match ? 'true' : 'false');
+        });
+        renderCards();
+      });
+    });
   }
 
   function installWrapper() {
     if (typeof window.updateReservationsHistory !== 'function') {
-      // Retry until app.js has defined the function
       return setTimeout(installWrapper, 50);
     }
     const original = window.updateReservationsHistory;
     window.updateReservationsHistory = function (reservations) {
       try { original.call(this, reservations); } catch (e) { console.error(e); }
-      try { renderCards(reservations); } catch (e) { console.error('renderCards error:', e); }
+      lastReservations = Array.isArray(reservations) ? reservations : [];
+      try { renderCards(); } catch (e) { console.error('renderCards error:', e); }
     };
   }
 
-  document.addEventListener('DOMContentLoaded', installWrapper);
+  document.addEventListener('DOMContentLoaded', function () {
+    wireFilters();
+    installWrapper();
+  });
 })();
