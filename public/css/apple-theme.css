@@ -480,6 +480,30 @@ td.reservation-cell {
   z-index: 2;
 }
 
+/* Grey background stripes painted BEHIND the bar on Saturday columns
+   inside a multi-day colspan cell. Without this, saturdays turn white
+   once covered by a reservation TD. */
+.reservation-bg-stripes {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+.reservation-bg-stripe {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: #d7d7dc;
+}
+
+/* Empty cells (the ones left visible by the half-cell protrusion) keep
+   their saturday grey naturally. Reservation-cell itself becomes transparent
+   so the stripes below show through. */
+#reservation-table td.reservation-cell,
+td.reservation-cell {
+  background: transparent !important;
+}
+
 /* Force ALL text and icons inside any reservation bar to be black,
    overriding per-color inline styles in style.css */
 .reservation-bar,

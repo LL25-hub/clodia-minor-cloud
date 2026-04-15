@@ -1131,11 +1131,27 @@ function updateReservationTable(rooms, reservations, dates) {
               cell.style.setProperty('--cols', colSpan);
 
               // Verifica se include sabato per colorare lo sfondo
-              const isSaturdayIncluded = Array.from({length: colSpan}, (_, idx) => startIndex + idx)
-                  .some(idx => new Date(dates[idx]).getDay() === 6);
+              const saturdayIndicesInSpan = [];
+              for (let k = 0; k < colSpan; k++) {
+                if (new Date(dates[startIndex + k]).getDay() === 6) saturdayIndicesInSpan.push(k);
+              }
+              const isSaturdayIncluded = saturdayIndicesInSpan.length > 0;
 
               if (isSaturdayIncluded) {
                 cell.classList.add('includes-saturday');
+                // Paint a grey stripe BEHIND the bar for each internal Saturday
+                const stripes = document.createElement('div');
+                stripes.className = 'reservation-bg-stripes';
+                stripes.setAttribute('aria-hidden', 'true');
+                const pctW = 100 / colSpan;
+                saturdayIndicesInSpan.forEach(k => {
+                  const s = document.createElement('div');
+                  s.className = 'reservation-bg-stripe';
+                  s.style.left = (k * pctW) + '%';
+                  s.style.width = pctW + '%';
+                  stripes.appendChild(s);
+                });
+                cell.appendChild(stripes);
               }
 
               // Logica per colorare in base allo stato di pagamento
