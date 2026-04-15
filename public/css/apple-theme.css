@@ -473,6 +473,55 @@ input:focus, textarea:focus, select:focus {
   color: #111 !important;
 }
 
+/* Reference (left) + price (right) inside reservation bars */
+.reservation-bar {
+  display: flex !important;
+  align-items: center;
+  gap: 4px;
+  padding: 0 6px;
+}
+
+.reservation-ref {
+  flex: 0 0 auto;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.12);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 70px;
+  line-height: 1.2;
+}
+
+.reservation-price {
+  flex: 0 0 auto;
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  padding: 0 2px;
+  letter-spacing: -0.01em;
+}
+
+/* Keep the center name clipped so left/right never overflow */
+.reservation-bar .reservation-center {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.reservation-bar .reservation-client-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
 /* Icon chips: slightly darker translucent background so they stay visible
    on every bar color, but still show a black glyph */
 .reservation-color-yellow .reservation-icon,

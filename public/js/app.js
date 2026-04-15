@@ -1181,15 +1181,21 @@ function updateReservationTable(rooms, reservations, dates) {
                   currentReservation.client_name.substring(0, 10) + "..." :
                   currentReservation.client_name;
 
+              const refText = currentReservation.reference ? String(currentReservation.reference).trim() : '';
+              const estimateValue = parseFloat(currentReservation.estimate_amount) || 0;
+              const priceText = estimateValue > 0 ? ('€' + Math.round(estimateValue)) : '';
+
               cell.innerHTML = `
   <div class="reservation-bar"
     data-reservation-id="${currentReservation.id}"
     data-bs-toggle="tooltip"
     data-bs-html="true"
     data-bs-title="${tooltipContent}">
+    ${refText ? `<div class="reservation-ref">${refText}</div>` : ''}
     <div class="reservation-center">
       <div class="reservation-client-name">${currentReservation.client_name}</div>
     </div>
+    ${priceText ? `<div class="reservation-price">${priceText}</div>` : ''}
     <div class="reservation-right">
       ${currentReservation.has_beach == 1 ? '<span class="reservation-icon"><i class="fas fa-umbrella-beach"></i></span>' : ''}
       ${currentReservation.is_paid == 1 ? '<span class="reservation-icon"><i class="fas fa-check-circle"></i></span>' : ''}
