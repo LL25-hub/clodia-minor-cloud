@@ -1845,24 +1845,23 @@ function updateRoomsList(rooms) {
   if (rooms.length === 0) {
     const row = document.createElement('tr');
     row.innerHTML = `
-      <td colspan="5" class="text-center py-3 text-muted">Nessun appartamento disponibile</td>
+      <td colspan="4" class="text-center py-3 text-muted">Nessun appartamento disponibile</td>
     `;
     roomsList.appendChild(row);
     return;
   }
-  
-  rooms.forEach((room, index) => {
+
+  rooms.forEach((room) => {
     const row = document.createElement('tr');
     row.innerHTML = `
-      <td class="text-center">${index + 1}</td>
       <td>${room.room_number}</td>
       <td>${room.room_type}</td>
       <td>${room.floor || '-'}</td>
       <td>
-        <button class="btn btn-sm btn-outline-primary me-1 edit-room" 
-          data-id="${room.id}" 
-          data-name="${room.room_number}" 
-          data-type="${room.room_type}" 
+        <button class="btn btn-sm btn-outline-primary me-1 edit-room"
+          data-id="${room.id}"
+          data-name="${room.room_number}"
+          data-type="${room.room_type}"
           data-floor="${room.floor}">
           <i class="fas fa-edit"></i>
         </button>

@@ -1,7 +1,8 @@
 /* Mobile UX enhancements: off-canvas sidebar, dynamic topbar title, swipe-to-close. */
 (function () {
-  const MOBILE_BREAKPOINT = 768;
-  const isMobile = () => window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 0.02}px)`).matches;
+  const isMobile = () => window.matchMedia(
+    '(max-width: 767.98px), (max-width: 991.98px) and (max-height: 500px) and (pointer: coarse)'
+  ).matches;
 
   function openSidebar() {
     document.body.classList.add('sidebar-open');
@@ -28,20 +29,11 @@
   document.addEventListener('DOMContentLoaded', function () {
     const toggleBtn = document.getElementById('mobile-menu-toggle');
     const backdrop = document.getElementById('sidebar-backdrop');
-    const refreshBtn = document.getElementById('mobile-refresh');
 
     if (toggleBtn) toggleBtn.addEventListener('click', toggleSidebar);
     if (backdrop) {
       backdrop.removeAttribute('hidden');
       backdrop.addEventListener('click', closeSidebar);
-    }
-    if (refreshBtn) {
-      refreshBtn.addEventListener('click', function () {
-        // Trigger the current active nav item again to reload its section
-        const active = document.querySelector('.list-group-item.active[data-section]');
-        if (active) active.click();
-        else window.location.reload();
-      });
     }
 
     // Close sidebar when a menu item is tapped (on mobile)
