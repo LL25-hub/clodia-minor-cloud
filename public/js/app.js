@@ -1029,6 +1029,16 @@ function updateReservationTable(rooms, reservations, dates) {
 
   reservationTable.innerHTML = '';
 
+  // Index: "roomId|YYYY-MM-DD" -> reservation that ENDS that day (checkout morning).
+  // Used to paint a half-cell marker on the checkout day so the user sees that
+  // the guest is leaving the morning of that day, not the previous evening.
+  const checkoutIndex = new Map();
+  reservations.forEach(r => {
+    if (r.deleted) return;
+    if (!r.check_out_date) return;
+    checkoutIndex.set(r.room_id + '|' + r.check_out_date, r);
+  });
+
   // Raggruppa le camere per piano per aggiungere distinzione visiva
   const roomsByFloor = {};
   rooms.forEach(room => {
@@ -1250,6 +1260,16 @@ function updateReservationTable(rooms, reservations, dates) {
                 cell.classList.add('saturday-column');
               }
 
+              // Mostra che c'è un check-out la mattina di questo giorno (se applicabile)
+              const checkoutRes = checkoutIndex.get(room.id + '|' + dates[i]);
+              if (checkoutRes) {
+                cell.classList.add('cell-empty-with-checkout');
+                const half = document.createElement('div');
+                half.className = 'cell-checkout-half reservation-color-' + (checkoutRes.reservation_color || 'yellow');
+                half.setAttribute('aria-hidden', 'true');
+                cell.appendChild(half);
+              }
+
               // Aggiungi evento click per nuova prenotazione
               cell.addEventListener('click', function() {
                 const date = this.dataset.date;
@@ -1282,6 +1302,16 @@ function updateReservationTable(rooms, reservations, dates) {
             const isSaturday = cellDate.getDay() === 6; // 6=sabato
             if (isSaturday) {
               cell.classList.add('saturday-column');
+            }
+
+            // Mostra che c'è un check-out la mattina di questo giorno (se applicabile)
+            const checkoutRes2 = checkoutIndex.get(room.id + '|' + dates[i]);
+            if (checkoutRes2) {
+              cell.classList.add('cell-empty-with-checkout');
+              const half = document.createElement('div');
+              half.className = 'cell-checkout-half reservation-color-' + (checkoutRes2.reservation_color || 'yellow');
+              half.setAttribute('aria-hidden', 'true');
+              cell.appendChild(half);
             }
 
             // Aggiungi evento click per nuova prenotazione

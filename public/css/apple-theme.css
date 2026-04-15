@@ -460,6 +460,28 @@ input:focus, textarea:focus, select:focus {
   border: none !important;
 }
 
+/* Check-out half marker: shows that a guest is leaving on the morning of the cell day.
+   Painted on empty cells whose date equals a reservation's check_out_date. */
+#reservation-table td.cell-empty-with-checkout,
+td[data-date].cell-empty-with-checkout {
+  position: relative;
+  padding: 0 !important;
+}
+.cell-checkout-half {
+  position: absolute;
+  top: 1px;
+  bottom: 1px;
+  left: 0;
+  width: 50%;
+  border-top-right-radius: 6px;
+  border-bottom-right-radius: 6px;
+  pointer-events: none;
+  box-shadow: 1px 0 0 rgba(0, 0, 0, 0.08);
+}
+.cell-checkout-half.reservation-color-yellow { background: #ffd60a; }
+.cell-checkout-half.reservation-color-blue   { background: #0a84ff; }
+.cell-checkout-half.reservation-color-orange { background: #ff9500; }
+
 /* Force ALL text and icons inside any reservation bar to be black,
    overriding per-color inline styles in style.css */
 .reservation-bar,
@@ -1088,14 +1110,46 @@ canvas { background: transparent; }
    =========================================================== */
 .reservations-card-view { display: block; }
 
-.r-cards-section { margin-bottom: 22px; }
+.r-cards-section { margin-bottom: 28px; }
 .r-cards-section__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: var(--ap-text);
+  margin: 8px 2px 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--ap-separator);
+}
+.r-cards-section__title::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.6;
+}
+.r-cards-section:nth-child(1) .r-cards-section__title { color: #30d158; } /* In corso */
+.r-cards-section:nth-child(2) .r-cards-section__title { color: #0071e3; } /* Imminenti / Questa settimana */
+.r-cards-section:nth-child(3) .r-cards-section__title { color: var(--ap-text-secondary); } /* Prossime */
+.r-cards-section:nth-child(4) .r-cards-section__title { color: var(--ap-text-tertiary); } /* Storico */
+.r-cards-section:nth-child(1) .r-cards-section__title::after,
+.r-cards-section:nth-child(2) .r-cards-section__title::after,
+.r-cards-section:nth-child(3) .r-cards-section__title::after,
+.r-cards-section:nth-child(4) .r-cards-section__title::after {
+  content: attr(data-count);
+  margin-left: auto;
   font-size: 0.78rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
   color: var(--ap-text-tertiary);
-  margin: 4px 2px 10px;
+  font-weight: 500;
+  background: var(--ap-surface);
+  border: 1px solid var(--ap-separator);
+  border-radius: 999px;
+  padding: 2px 10px;
 }
 
 .r-cards-grid {

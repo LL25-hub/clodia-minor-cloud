@@ -188,7 +188,9 @@
   function renderSection(container, title, list) {
     if (!list.length) return;
     const section = createEl('section', 'r-cards-section');
-    section.appendChild(createEl('h5', 'r-cards-section__title', title));
+    const titleEl = createEl('h5', 'r-cards-section__title', title);
+    titleEl.setAttribute('data-count', list.length + (list.length === 1 ? ' prenotazione' : ' prenotazioni'));
+    section.appendChild(titleEl);
     const grid = createEl('div', 'r-cards-grid');
     list.forEach(function (r) { grid.appendChild(buildCard(r)); });
     section.appendChild(grid);
