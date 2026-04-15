@@ -1,0 +1,625 @@
+/* ===========================================================
+   Apple-inspired minimal theme for Clodia Minor
+   Loaded AFTER style.css to override beige/heavy styling.
+   =========================================================== */
+
+:root {
+  /* Apple-like palette */
+  --ap-bg: #f5f5f7;              /* page background (Apple light gray) */
+  --ap-surface: #ffffff;          /* cards, inputs, tables */
+  --ap-surface-soft: #fafafa;     /* subtle alternation */
+  --ap-text: #1d1d1f;             /* primary text */
+  --ap-text-secondary: #6e6e73;   /* secondary text */
+  --ap-text-tertiary: #86868b;    /* tertiary, placeholders */
+  --ap-separator: rgba(0, 0, 0, 0.08);
+  --ap-separator-strong: rgba(0, 0, 0, 0.12);
+  --ap-accent: #0071e3;           /* SF blue */
+  --ap-accent-hover: #0077ed;
+  --ap-accent-pressed: #0062c2;
+  --ap-danger: #ff3b30;
+  --ap-success: #30d158;
+  --ap-warning: #ff9f0a;
+  --ap-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --ap-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --ap-shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.08);
+  --ap-radius-sm: 8px;
+  --ap-radius: 12px;
+  --ap-radius-lg: 16px;
+
+  /* Override legacy vars that painted beige everywhere */
+  --bs-cream: var(--ap-surface) !important;
+  --bs-saturday: #f2f2f4 !important;
+  --bs-floor-header: #f5f5f7 !important;
+}
+
+/* ---------- Global ---------- */
+html, body {
+  background-color: var(--ap-bg) !important;
+  color: var(--ap-text);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter',
+               'Helvetica Neue', Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.003em;
+}
+
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--ap-text);
+}
+
+a { color: var(--ap-accent); }
+a:hover { color: var(--ap-accent-hover); }
+
+hr { border-color: var(--ap-separator); opacity: 1; }
+
+::selection { background: rgba(0, 113, 227, 0.2); }
+
+/* ---------- Nuke beige everywhere ---------- */
+table td, table th,
+.table td, .table th,
+td[data-date], .date-header,
+#reservation-table td, #reservation-table th,
+thead.table-light, tbody tr td,
+.table > :not(caption) > * > *,
+.weekend-column,
+td[data-date].weekend-column,
+th.weekend-column,
+#reservation-table th.weekend-column,
+#reservation-table td.weekend-column,
+#reservation-table tbody tr td.weekend-column,
+table#reservation-table th.weekend-column,
+table#reservation-table td.weekend-column {
+  background-color: var(--ap-surface) !important;
+}
+
+.saturday-column,
+tr th.saturday-column,
+tr td.saturday-column,
+table#reservation-table th.saturday-column,
+table#reservation-table td.saturday-column {
+  background-color: var(--ap-surface-soft) !important;
+}
+
+.floor-header td,
+tr.floor-header td,
+table tbody tr.floor-header td {
+  background-color: var(--ap-bg) !important;
+  border-top: 1px solid var(--ap-separator);
+  border-bottom: 1px solid var(--ap-separator);
+  color: var(--ap-text-secondary);
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.78rem !important;
+  padding: 8px 12px !important;
+}
+
+.date-header {
+  background-color: var(--ap-surface) !important;
+  color: var(--ap-text-secondary);
+  font-weight: 600 !important;
+  border-bottom: 1px solid var(--ap-separator);
+}
+
+.day-number { color: var(--ap-text); }
+.day-abbr { color: var(--ap-text-tertiary); }
+.current-day { color: var(--ap-accent) !important; }
+
+/* ---------- Sidebar (dark, clean, Apple Sidebar-like) ---------- */
+#sidebar-wrapper {
+  background-color: #1d1d1f !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.06) !important;
+  width: 240px;
+}
+
+.sidebar-heading {
+  background-color: transparent !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #f5f5f7 !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em !important;
+  padding: 18px 20px !important;
+  font-size: 1rem !important;
+}
+
+#sidebar-wrapper .list-group-item {
+  background-color: transparent !important;
+  color: rgba(255, 255, 255, 0.75) !important;
+  border: none !important;
+  border-left: 3px solid transparent !important;
+  padding: 10px 16px 10px 18px !important;
+  margin: 2px 8px !important;
+  border-radius: 8px !important;
+  font-size: 0.88rem !important;
+  font-weight: 500;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+#sidebar-wrapper .list-group-item i {
+  color: rgba(255, 255, 255, 0.6);
+  width: 18px;
+  text-align: center;
+  margin-right: 10px !important;
+  transition: color 0.15s ease;
+}
+
+#sidebar-wrapper .list-group-item:hover:not(.active) {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+  color: #fff !important;
+}
+
+#sidebar-wrapper .list-group-item:hover:not(.active) i {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+#sidebar-wrapper .list-group-item.active {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-left-color: var(--ap-accent) !important;
+  color: #fff !important;
+}
+
+#sidebar-wrapper .list-group-item.active i {
+  color: var(--ap-accent);
+}
+
+/* ---------- Mobile topbar match ---------- */
+#mobile-topbar {
+  background: #1d1d1f !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ---------- Cards ---------- */
+.card {
+  background-color: var(--ap-surface) !important;
+  border: 1px solid var(--ap-separator) !important;
+  border-radius: var(--ap-radius) !important;
+  box-shadow: var(--ap-shadow-sm) !important;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: var(--ap-shadow-md) !important;
+  transform: none;
+}
+
+.card-header {
+  background-color: var(--ap-surface) !important;
+  border-bottom: 1px solid var(--ap-separator) !important;
+  font-weight: 600;
+  color: var(--ap-text);
+  padding: 14px 18px !important;
+  border-top-left-radius: var(--ap-radius) !important;
+  border-top-right-radius: var(--ap-radius) !important;
+}
+
+.card-header h5, .card-header h6, .card-header .h5, .card-header .h6 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.card-body { padding: 18px; }
+
+/* ---------- Buttons ---------- */
+.btn {
+  border-radius: 10px !important;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  padding: 0.5rem 1rem;
+  transition: background 0.15s ease, transform 0.05s ease, box-shadow 0.15s ease;
+  box-shadow: none !important;
+}
+
+.btn:active { transform: scale(0.98); }
+
+.btn-primary {
+  background-color: var(--ap-accent) !important;
+  border-color: var(--ap-accent) !important;
+  color: #fff !important;
+}
+.btn-primary:hover { background-color: var(--ap-accent-hover) !important; border-color: var(--ap-accent-hover) !important; }
+.btn-primary:active { background-color: var(--ap-accent-pressed) !important; border-color: var(--ap-accent-pressed) !important; }
+
+.btn-secondary, .btn-outline-secondary {
+  background-color: rgba(0,0,0,0.04) !important;
+  border-color: transparent !important;
+  color: var(--ap-text) !important;
+}
+.btn-secondary:hover, .btn-outline-secondary:hover {
+  background-color: rgba(0,0,0,0.08) !important;
+  color: var(--ap-text) !important;
+}
+
+.btn-outline-primary {
+  background-color: transparent !important;
+  border: 1px solid var(--ap-accent) !important;
+  color: var(--ap-accent) !important;
+}
+.btn-outline-primary:hover {
+  background-color: rgba(0, 113, 227, 0.08) !important;
+  color: var(--ap-accent) !important;
+}
+
+.btn-danger {
+  background-color: var(--ap-danger) !important;
+  border-color: var(--ap-danger) !important;
+}
+.btn-success {
+  background-color: var(--ap-success) !important;
+  border-color: var(--ap-success) !important;
+  color: #0a3a12 !important;
+}
+.btn-warning {
+  background-color: var(--ap-warning) !important;
+  border-color: var(--ap-warning) !important;
+  color: #3a2700 !important;
+}
+
+.btn-light {
+  background-color: var(--ap-surface) !important;
+  border: 1px solid var(--ap-separator) !important;
+  color: var(--ap-text) !important;
+}
+
+/* ---------- Forms ---------- */
+.form-control, .form-select, input, textarea, select {
+  background-color: var(--ap-surface) !important;
+  border: 1px solid var(--ap-separator-strong) !important;
+  border-radius: 10px !important;
+  color: var(--ap-text) !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: none !important;
+}
+
+.form-control::placeholder {
+  color: var(--ap-text-tertiary);
+}
+
+.form-control:focus, .form-select:focus,
+input:focus, textarea:focus, select:focus {
+  border-color: var(--ap-accent) !important;
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15) !important;
+  outline: none !important;
+}
+
+.form-label {
+  font-weight: 500;
+  font-size: 0.85rem;
+  color: var(--ap-text-secondary);
+  margin-bottom: 6px;
+}
+
+.form-check-input {
+  border-color: var(--ap-separator-strong) !important;
+  border-radius: 6px !important;
+}
+.form-check-input:checked {
+  background-color: var(--ap-accent) !important;
+  border-color: var(--ap-accent) !important;
+}
+.form-check-input:focus {
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15) !important;
+}
+
+.form-check-input[type="radio"] { border-radius: 50% !important; }
+
+.input-group-text {
+  background-color: var(--ap-bg) !important;
+  border: 1px solid var(--ap-separator-strong) !important;
+  color: var(--ap-text-secondary) !important;
+}
+
+/* ---------- Tables ---------- */
+.table {
+  --bs-table-bg: transparent;
+  background-color: var(--ap-surface) !important;
+  color: var(--ap-text);
+  border-color: var(--ap-separator) !important;
+  border-radius: var(--ap-radius);
+  overflow: hidden;
+}
+
+.table thead th {
+  background-color: var(--ap-surface) !important;
+  color: var(--ap-text-secondary) !important;
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border-bottom: 1px solid var(--ap-separator-strong) !important;
+}
+
+.table tbody tr {
+  border-color: var(--ap-separator) !important;
+}
+
+.table tbody td {
+  vertical-align: middle;
+  border-color: var(--ap-separator) !important;
+}
+
+.table-hover tbody tr:hover td {
+  background-color: var(--ap-surface-soft) !important;
+}
+
+.room-cell {
+  background-color: var(--ap-surface) !important;
+  border-right: 1px solid var(--ap-separator-strong) !important;
+  color: var(--ap-text);
+}
+
+.room-type { color: var(--ap-text-tertiary) !important; }
+
+/* ---------- List groups ---------- */
+.list-group-item:not(#sidebar-wrapper .list-group-item) {
+  background-color: var(--ap-surface);
+  border-color: var(--ap-separator);
+  color: var(--ap-text);
+}
+
+/* ---------- Badges ---------- */
+.badge {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  border-radius: 6px;
+  padding: 0.3em 0.55em;
+}
+
+.badge.bg-primary { background-color: var(--ap-accent) !important; }
+.badge.bg-secondary { background-color: rgba(0,0,0,0.06) !important; color: var(--ap-text) !important; }
+.badge.bg-success { background-color: rgba(48, 209, 88, 0.18) !important; color: #0d6d2b !important; }
+.badge.bg-warning { background-color: rgba(255, 159, 10, 0.2) !important; color: #8a4d00 !important; }
+.badge.bg-danger { background-color: rgba(255, 59, 48, 0.18) !important; color: #a01c17 !important; }
+.badge.bg-info { background-color: rgba(0, 113, 227, 0.15) !important; color: var(--ap-accent) !important; }
+.badge.bg-light { background-color: rgba(0,0,0,0.04) !important; color: var(--ap-text) !important; }
+
+/* ---------- Modals ---------- */
+.modal-content {
+  background-color: var(--ap-surface) !important;
+  border: none !important;
+  border-radius: var(--ap-radius-lg) !important;
+  box-shadow: var(--ap-shadow-lg) !important;
+  overflow: hidden;
+}
+
+.modal-header {
+  background-color: var(--ap-surface) !important;
+  border-bottom: 1px solid var(--ap-separator) !important;
+  padding: 18px 22px;
+}
+
+.modal-title {
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  font-size: 1.05rem;
+}
+
+.modal-body { padding: 22px; }
+
+.modal-footer {
+  background-color: var(--ap-surface) !important;
+  border-top: 1px solid var(--ap-separator) !important;
+  padding: 14px 22px;
+  gap: 8px;
+}
+
+.modal-backdrop { background-color: rgba(0, 0, 0, 0.35); }
+.modal-backdrop.show { opacity: 1; }
+
+/* ---------- Reservation bars: softer, flatter ---------- */
+.reservation-bar {
+  border-radius: 8px !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08) !important;
+  border: none !important;
+  font-weight: 600;
+}
+
+.reservation-bar:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12) !important;
+  transform: translateY(-1px);
+}
+
+.reservation-bar.reservation-color-yellow,
+.legend-color.reservation-color-yellow {
+  background: #ffcc00 !important;
+  color: #3a2700 !important;
+  border: none !important;
+}
+
+.reservation-bar.reservation-color-blue,
+.legend-color.reservation-color-blue {
+  background: #0071e3 !important;
+  color: #fff !important;
+  border: none !important;
+}
+
+.reservation-bar.reservation-color-orange,
+.legend-color.reservation-color-orange {
+  background: #ff9500 !important;
+  color: #fff !important;
+  border: none !important;
+}
+
+.reservation-color-yellow .reservation-icon {
+  background-color: rgba(0, 0, 0, 0.15);
+  color: #1d1d1f;
+}
+
+.reservation-color-blue .reservation-icon,
+.reservation-color-orange .reservation-icon {
+  background-color: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
+/* ---------- Alerts ---------- */
+.alert {
+  border: 1px solid var(--ap-separator);
+  border-radius: var(--ap-radius);
+  padding: 12px 16px;
+}
+.alert-success { background-color: rgba(48, 209, 88, 0.1); color: #0a5d24; border-color: rgba(48, 209, 88, 0.25); }
+.alert-danger { background-color: rgba(255, 59, 48, 0.08); color: #8e1a15; border-color: rgba(255, 59, 48, 0.2); }
+.alert-warning { background-color: rgba(255, 159, 10, 0.1); color: #7a4300; border-color: rgba(255, 159, 10, 0.25); }
+.alert-info { background-color: rgba(0, 113, 227, 0.08); color: #003a75; border-color: rgba(0, 113, 227, 0.2); }
+
+/* ---------- Dropdowns ---------- */
+.dropdown-menu {
+  background-color: var(--ap-surface) !important;
+  border: 1px solid var(--ap-separator) !important;
+  border-radius: var(--ap-radius) !important;
+  box-shadow: var(--ap-shadow-lg) !important;
+  padding: 6px;
+}
+
+.dropdown-item {
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  font-size: 0.88rem;
+}
+
+.dropdown-item:hover, .dropdown-item:focus {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+  color: var(--ap-text) !important;
+}
+
+.dropdown-item.active, .dropdown-item:active {
+  background-color: var(--ap-accent) !important;
+  color: #fff !important;
+}
+
+/* ---------- Tabs / Nav pills ---------- */
+.nav-tabs {
+  border-bottom: 1px solid var(--ap-separator);
+}
+.nav-tabs .nav-link {
+  border: none !important;
+  color: var(--ap-text-secondary);
+  border-radius: 0 !important;
+  padding: 10px 14px;
+  font-weight: 500;
+  position: relative;
+}
+.nav-tabs .nav-link:hover { color: var(--ap-text); background-color: transparent; }
+.nav-tabs .nav-link.active {
+  color: var(--ap-accent) !important;
+  background-color: transparent !important;
+}
+.nav-tabs .nav-link.active::after {
+  content: '';
+  position: absolute;
+  left: 10px; right: 10px; bottom: -1px;
+  height: 2px;
+  background: var(--ap-accent);
+  border-radius: 2px;
+}
+
+.nav-pills .nav-link {
+  border-radius: 8px !important;
+  color: var(--ap-text-secondary);
+  padding: 6px 12px;
+  font-weight: 500;
+}
+.nav-pills .nav-link:hover { background-color: rgba(0,0,0,0.04); color: var(--ap-text); }
+.nav-pills .nav-link.active {
+  background-color: var(--ap-accent) !important;
+  color: #fff !important;
+}
+
+/* ---------- Pagination ---------- */
+.pagination .page-link {
+  border: 1px solid var(--ap-separator);
+  color: var(--ap-text);
+  border-radius: 8px !important;
+  margin: 0 2px;
+  padding: 6px 12px;
+}
+.pagination .page-item.active .page-link {
+  background-color: var(--ap-accent);
+  border-color: var(--ap-accent);
+  color: #fff;
+}
+
+/* ---------- Scrollbar (subtle, Apple-like) ---------- */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.28); background-clip: padding-box; border: 2px solid transparent; }
+
+/* ---------- Placeholder pulse (dashboard skeletons) ---------- */
+.placeholder {
+  background-color: rgba(0, 0, 0, 0.06) !important;
+  border-radius: 4px;
+}
+
+/* ---------- Close button (modals) ---------- */
+.btn-close {
+  border-radius: 50%;
+  opacity: 0.55;
+  transition: opacity 0.15s ease;
+}
+.btn-close:hover { opacity: 1; }
+
+/* ---------- Container spacing ---------- */
+.container-fluid {
+  max-width: 1400px;
+}
+
+/* ---------- Utility: soft divider ---------- */
+.border-top, .border-bottom, .border { border-color: var(--ap-separator) !important; }
+
+/* ---------- Legend pills ---------- */
+.reservation-legend {
+  background-color: var(--ap-surface);
+  border: 1px solid var(--ap-separator);
+  border-radius: var(--ap-radius);
+  padding: 12px 16px;
+}
+.legend-item {
+  font-size: 0.8rem;
+  color: var(--ap-text-secondary);
+}
+.legend-color {
+  width: 24px; height: 14px;
+  border-radius: 4px;
+  border: none !important;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+/* ---------- Chart background friendly ---------- */
+canvas { background: transparent; }
+
+/* ===========================================================
+   Mobile overrides for Apple theme
+   =========================================================== */
+@media (max-width: 767.98px) {
+  #sidebar-wrapper {
+    background-color: #1d1d1f !important;
+  }
+
+  .modal-content {
+    border-radius: 0 !important;
+  }
+
+  .modal-header {
+    background-color: var(--ap-surface) !important;
+    color: var(--ap-text) !important;
+  }
+
+  .modal-header .btn-close {
+    filter: none !important;
+  }
+
+  .card {
+    border-radius: var(--ap-radius-sm) !important;
+  }
+}
