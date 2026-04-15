@@ -145,14 +145,14 @@ document.addEventListener('DOMContentLoaded', function() {
   // Initialize navigation
   initNavigation();
   
-  // Load initial data (mark caches fresh to avoid duplicate reload on first tab-switch)
+  // Eager: only what the user sees on first paint (dashboard).
+  // The rest is lazy-loaded when the user opens the section (handled in initNavigation).
   loadSettings();
   loadDashboardData(); markLoaded('dashboard');
-  initReservationCalendar(); markLoaded('reservations');
-  loadRooms(); markLoaded('add-rooms');
-  loadClients();
-  loadReservationsHistory(); markLoaded('history');
-  loadTrash(); markLoaded('trash');
+  // Still initialize the reservation calendar's static structure (no network)
+  // so first interaction with Registro is instant; data loads on tab open.
+  try { if (typeof initReservationCalendar === 'function') initReservationCalendar(); } catch (e) { console.warn(e); }
+  loadClients(); // search-driven, no network at boot
   
   // Add event listeners
   addGlobalEventListeners();

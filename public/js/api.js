@@ -25,18 +25,15 @@ async function apiRequest(endpoint, options = {}) {
   if (options.method === 'POST' || options.method === 'PUT') {
     options.headers['Content-Type'] = 'application/json';
   }
-  
-  // Aggiungi un header per prevenire la cache
-  options.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
-  options.headers['Pragma'] = 'no-cache';
-  options.headers['Expires'] = '0';
-  
+
+  // For mutations, we want the freshest data; for reads let the browser decide.
+  const method = (options.method || 'GET').toUpperCase();
+  if (method !== 'GET') {
+    options.headers['Cache-Control'] = 'no-cache';
+  }
+
   try {
-    // Aggiungi un parametro timestamp random per forzare la richiesta fresca
-    const nocache = `_nocache=${Date.now()}`;
-    const urlWithNoCache = url.includes('?') ? `${url}&${nocache}` : `${url}?${nocache}`;
-    
-    const response = await fetch(urlWithNoCache, options);
+    const response = await fetch(url, options);
     
     // Se la risposta non è ok (status 200-299), lancia un errore
     if (!response.ok) {
