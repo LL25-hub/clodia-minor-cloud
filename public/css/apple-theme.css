@@ -609,6 +609,67 @@ input:focus, textarea:focus, select:focus {
 canvas { background: transparent; }
 
 /* ===========================================================
+   People stepper (reservation form "Persone" field)
+   =========================================================== */
+.people-stepper {
+  display: inline-flex;
+  align-items: stretch;
+  width: 100%;
+  border: 1px solid var(--ap-separator-strong);
+  border-radius: 10px;
+  background: var(--ap-surface);
+  overflow: hidden;
+  min-height: 44px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.people-stepper:focus-within {
+  border-color: var(--ap-accent) !important;
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
+}
+
+.people-stepper__btn {
+  flex: 0 0 44px;
+  width: 44px;
+  border: none;
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--ap-text);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.people-stepper__btn:hover { background: rgba(0, 0, 0, 0.08); }
+.people-stepper__btn:active { background: rgba(0, 0, 0, 0.12); }
+
+.people-stepper__input {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  border: none !important;
+  background: transparent !important;
+  font-size: 1rem !important;
+  font-weight: 600;
+  color: var(--ap-text);
+  font-variant-numeric: tabular-nums;
+  padding: 0 4px !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+.people-stepper__input:focus { box-shadow: none !important; }
+
+/* Hide native spinners */
+.people-stepper__input::-webkit-outer-spin-button,
+.people-stepper__input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.people-stepper__input[type=number] {
+  -moz-appearance: textfield;
+}
+
+/* ===========================================================
    Clients search results (Apple Contacts style)
    =========================================================== */
 .clients-results__empty {

@@ -28,6 +28,7 @@
     <script src="js/mobile.js" defer></script>
     <script src="js/clients-search.js" defer></script>
     <script src="js/reservations-mobile.js" defer></script>
+    <script src="js/people-stepper.js" defer></script>
 </head>
 <body>
 <!-- Mobile top bar (visible only on mobile) -->
@@ -508,12 +509,26 @@
                             </div>
                         </div>
 
-                        <!-- Numero Persone e Servizio Spiaggia -->
+                        <!-- Numero Persone (stepper) e Servizio Spiaggia -->
                         <div class="col-md-3">
                             <label for="num-people" class="form-label small fw-bold mb-1">Persone <span class="text-danger">*</span></label>
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-text"><i class="fas fa-users"></i></span>
-                                <input type="number" class="form-control" id="num-people" min="1" value="1" required>
+                            <div class="people-stepper" data-target="num-people">
+                                <button type="button" class="people-stepper__btn" data-action="dec" aria-label="Diminuisci">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <input type="number"
+                                       class="form-control people-stepper__input"
+                                       id="num-people"
+                                       min="1"
+                                       max="99"
+                                       step="1"
+                                       value="2"
+                                       inputmode="numeric"
+                                       pattern="[0-9]*"
+                                       required>
+                                <button type="button" class="people-stepper__btn" data-action="inc" aria-label="Aumenta">
+                                    <i class="fas fa-plus"></i>
+                                </button>
                             </div>
                         </div>
                         <div class="col-md-3">

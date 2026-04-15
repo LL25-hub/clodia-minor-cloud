@@ -1581,7 +1581,7 @@ async function saveReservation() {
       room_id: document.getElementById('room-select').value,
       check_in_date: document.getElementById('check-in-date').value,
       check_out_date: document.getElementById('check-out-date').value,
-      num_people: document.getElementById('num-people').value,
+      num_people: Math.max(parseInt(document.getElementById('num-people').value, 10) || 1, 1),
       has_beach: document.getElementById('has-beach').checked ? 1 : 0,
       has_deposit: document.getElementById('has-deposit').checked ? 1 : 0,
       is_paid: isPaid ? 1 : 0, // Ora calcolato automaticamente
