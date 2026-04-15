@@ -428,14 +428,15 @@ input:focus, textarea:focus, select:focus {
   transform: translateY(-1px);
 }
 
-/* Saturated, flat colors matching the legend (higher specificity to beat style.css gradients) */
+/* Saturated flat colors matching the legend. Text and icons are ALWAYS black
+   (regardless of background), per product request. */
 #reservation-table .reservation-cell .reservation-bar.reservation-color-yellow,
 .reservation-cell .reservation-bar.reservation-color-yellow,
 .reservation-bar.reservation-color-yellow,
 .legend-color.reservation-color-yellow {
   background: #ffd60a !important;
   background-image: none !important;
-  color: #3a2700 !important;
+  color: #111 !important;
   border: none !important;
 }
 
@@ -445,7 +446,7 @@ input:focus, textarea:focus, select:focus {
 .legend-color.reservation-color-blue {
   background: #0a84ff !important;
   background-image: none !important;
-  color: #fff !important;
+  color: #111 !important;
   border: none !important;
 }
 
@@ -455,8 +456,31 @@ input:focus, textarea:focus, select:focus {
 .legend-color.reservation-color-orange {
   background: #ff9500 !important;
   background-image: none !important;
-  color: #fff !important;
+  color: #111 !important;
   border: none !important;
+}
+
+/* Force ALL text and icons inside any reservation bar to be black,
+   overriding per-color inline styles in style.css */
+.reservation-bar,
+.reservation-bar *,
+.reservation-bar .reservation-client-name,
+.reservation-bar .reservation-icon,
+.reservation-bar .reservation-icon i,
+.reservation-bar i.fas,
+.reservation-bar i.far,
+.reservation-bar i.fa {
+  color: #111 !important;
+}
+
+/* Icon chips: slightly darker translucent background so they stay visible
+   on every bar color, but still show a black glyph */
+.reservation-color-yellow .reservation-icon,
+.reservation-color-blue .reservation-icon,
+.reservation-color-orange .reservation-icon,
+.reservation-bar .reservation-icon {
+  background-color: rgba(0, 0, 0, 0.18) !important;
+  color: #111 !important;
 }
 
 .reservation-color-yellow .reservation-icon {
