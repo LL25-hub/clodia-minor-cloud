@@ -1182,18 +1182,11 @@ function updateReservationTable(rooms, reservations, dates) {
                   currentReservation.client_name;
 
               cell.innerHTML = `
-  <div class="reservation-bar" 
+  <div class="reservation-bar"
     data-reservation-id="${currentReservation.id}"
     data-bs-toggle="tooltip"
     data-bs-html="true"
     data-bs-title="${tooltipContent}">
-    <div class="reservation-left">
-      <span class="reservation-icon">
-        ${currentReservation.reservation_color === 'blue' ? '<i class="fas fa-info-circle"></i>' : 
-          currentReservation.reservation_color === 'orange' ? '<i class="fas fa-exclamation-triangle"></i>' : 
-          '<i class="fas fa-check"></i>'}
-      </span>
-    </div>
     <div class="reservation-center">
       <div class="reservation-client-name">${currentReservation.client_name}</div>
     </div>
