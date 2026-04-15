@@ -40,6 +40,15 @@ router.put('/', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// Sanitize a phone string: strip trailing ".0" and placeholder values
+function sanitizePhone(raw) {
+  if (raw === null || raw === undefined) return null;
+  const s = String(raw).trim();
+  if (!s || s === '-' || s === '--') return null;
+  const cleaned = s.replace(/\.0+$/, '').trim();
+  return cleaned || null;
+}
+
 // Export all data
 router.get('/export', async (req, res, next) => {
   try {
@@ -52,18 +61,26 @@ router.get('/export', async (req, res, next) => {
     if (clientsRes.error) throw clientsRes.error;
     if (reservationsRes.error) throw reservationsRes.error;
 
+    const cleanClients = clientsRes.data.map(c => ({
+      ...c,
+      phone: sanitizePhone(c.phone)
+    }));
+
     const reservations = reservationsRes.data.map(r => {
       const { client, room, ...rest } = r;
       return {
         ...rest,
-        client_name: client?.name, client_phone: client?.phone,
-        room_number: room?.room_number, room_type: room?.room_type, floor: room?.floor
+        client_name: client?.name,
+        client_phone: sanitizePhone(client?.phone),
+        room_number: room?.room_number,
+        room_type: room?.room_type,
+        floor: room?.floor
       };
     });
 
     res.json({
       rooms: roomsRes.data,
-      clients: clientsRes.data,
+      clients: cleanClients,
       reservations
     });
   } catch (err) { next(err); }
@@ -85,7 +102,7 @@ router.post('/import', async (req, res, next) => {
     if (clienti && clienti.length > 0) {
       const rows = clienti.map(c => ({
         id: c.id || undefined,
-        name: c.name, phone: c.phone || null,
+        name: c.name, phone: sanitizePhone(c.phone),
         created_at: c.created_at || new Date().toISOString()
       }));
       const { error } = await supabase.from('clients').upsert(rows);

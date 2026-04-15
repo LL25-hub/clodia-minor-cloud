@@ -417,40 +417,50 @@ const dateUtils = {
       return result;
     },
     
+    // Sanitize a phone value: strip trailing ".0" import artifacts and placeholders
+    sanitizePhone(raw) {
+      if (raw === null || raw === undefined) return '';
+      const s = String(raw).trim();
+      if (!s || s === '-' || s === '--') return '';
+      return s.replace(/\.0+$/, '').trim();
+    },
+
     // Create a CSV content from data objects
     createCSV(data) {
       let csvContent = '';
-      
-      // Process each data section
+      const phoneFields = new Set(['phone', 'client_phone']);
+      const self = this;
+
       Object.entries(data).forEach(([section, items]) => {
         if (!items || items.length === 0) return;
-        
+
         csvContent += `# ${section.toUpperCase()}\n`;
-        
-        // Add headers
+
         const headers = Object.keys(items[0]);
         csvContent += headers.join(',') + '\n';
-        
-        // Add rows
+
         items.forEach(item => {
           const values = headers.map(header => {
-            const value = item[header];
-            
-            // Format based on type
-            if (value === null || value === undefined) return '';
+            let value = item[header];
+
+            // Sanitize phone columns (remove ".0" artifacts and placeholders)
+            if (phoneFields.has(header) && value !== null && value !== undefined) {
+              value = self.sanitizePhone(value);
+            }
+
+            if (value === null || value === undefined || value === '') return '';
             if (typeof value === 'string') {
-              // Escape quotes and wrap in quotes
               return `"${value.replace(/"/g, '""')}"`;
             }
             return value;
           });
-          
+
           csvContent += values.join(',') + '\n';
         });
-        
+
         csvContent += '\n';
       });
-      
+
       return csvContent;
     }
   };

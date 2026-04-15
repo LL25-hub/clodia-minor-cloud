@@ -3,6 +3,15 @@ const router = express.Router();
 const { supabase } = require('../db');
 const { validateClient } = require('../middleware/validators');
 
+// Sanitize phone: strip trailing ".0" and placeholder values, return null if empty
+function sanitizePhone(raw) {
+  if (raw === null || raw === undefined) return null;
+  const s = String(raw).trim();
+  if (!s || s === '-' || s === '--') return null;
+  const cleaned = s.replace(/\.0+$/, '').trim();
+  return cleaned || null;
+}
+
 // GET clients with optional search filter
 router.get('/', async (req, res, next) => {
   try {
@@ -38,7 +47,7 @@ router.post('/', validateClient, async (req, res, next) => {
 
     const { data, error } = await supabase
       .from('clients')
-      .insert({ name, phone: phone || null })
+      .insert({ name, phone: sanitizePhone(phone) })
       .select()
       .single();
     if (error) throw error;
@@ -56,7 +65,7 @@ router.put('/:id', validateClient, async (req, res, next) => {
     if (conflict) return res.status(400).json({ error: 'Un cliente con questo nome esiste già' });
 
     const { data, error } = await supabase
-      .from('clients').update({ name, phone: phone || null }).eq('id', clientId).select().maybeSingle();
+      .from('clients').update({ name, phone: sanitizePhone(phone) }).eq('id', clientId).select().maybeSingle();
     if (error) throw error;
     if (!data) return res.status(404).json({ error: 'Cliente non trovato' });
     res.json(data);

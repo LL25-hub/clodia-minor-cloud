@@ -1,65 +1,132 @@
-/* Clients section: search-only mode.
- * Replaces the default loadClients()/updateClientsList() behavior so that:
- *  - no clients are auto-loaded
- *  - a search input drives the results table (debounced)
- */
+/* Clients section: search-only mode with Apple-style contact cards. */
 (function () {
   const DEBOUNCE_MS = 200;
 
-  function getTbody() {
-    return document.getElementById('clients-list');
+  function getContainer() {
+    return document.getElementById('clients-results');
   }
 
-  function renderPlaceholder(msg) {
-    const tbody = getTbody();
-    if (!tbody) return;
-    tbody.innerHTML = '';
-    const tr = document.createElement('tr');
-    const td = document.createElement('td');
-    td.colSpan = 2;
-    td.className = 'text-muted text-center py-4';
-    td.textContent = msg;
-    tr.appendChild(td);
-    tbody.appendChild(tr);
+  function sanitizePhone(raw) {
+    if (!raw) return '';
+    const s = String(raw).trim();
+    if (!s || s === '-' || s === '--') return '';
+    // Strip spurious trailing ".0" (Excel/CSV import artifact)
+    return s.replace(/\.0+$/, '').trim();
+  }
+
+  function phoneTelHref(phone) {
+    const cleaned = sanitizePhone(phone);
+    // Keep digits and leading +; pick first block if "123 / 456"
+    const firstBlock = cleaned.split(/[\/\s,;]+/)[0] || cleaned;
+    return firstBlock.replace(/[^0-9+]/g, '');
+  }
+
+  function initialsOf(name) {
+    if (!name) return '?';
+    const parts = String(name).trim().split(/\s+/).slice(0, 2);
+    return parts.map(p => p[0]).join('').toUpperCase();
+  }
+
+  function avatarColor(name) {
+    // Stable pastel color from name hash
+    let h = 0;
+    for (let i = 0; i < (name || '').length; i++) {
+      h = (h * 31 + name.charCodeAt(i)) | 0;
+    }
+    const hue = Math.abs(h) % 360;
+    return `hsl(${hue}, 55%, 88%)`;
+  }
+
+  function avatarTextColor(name) {
+    let h = 0;
+    for (let i = 0; i < (name || '').length; i++) {
+      h = (h * 31 + name.charCodeAt(i)) | 0;
+    }
+    const hue = Math.abs(h) % 360;
+    return `hsl(${hue}, 55%, 32%)`;
+  }
+
+  function renderEmpty(msg) {
+    const c = getContainer();
+    if (!c) return;
+    c.innerHTML = '';
+    const empty = document.createElement('div');
+    empty.className = 'clients-results__empty';
+    empty.textContent = msg;
+    c.appendChild(empty);
   }
 
   function renderResults(clients) {
-    const tbody = getTbody();
-    if (!tbody) return;
-    tbody.innerHTML = '';
+    const c = getContainer();
+    if (!c) return;
+    c.innerHTML = '';
     if (!clients || clients.length === 0) {
-      renderPlaceholder('Nessun cliente trovato');
+      renderEmpty('Nessun cliente trovato');
       return;
     }
-    clients.forEach(function (c) {
-      const tr = document.createElement('tr');
 
-      const tdName = document.createElement('td');
-      tdName.textContent = c.name || '';
-      tr.appendChild(tdName);
+    const list = document.createElement('div');
+    list.className = 'client-list';
 
-      const tdPhone = document.createElement('td');
-      const phone = c.phone && c.phone !== '-' && c.phone !== '--' ? c.phone : '';
-      if (phone) {
-        const link = document.createElement('a');
-        link.href = 'tel:' + phone.replace(/[^0-9+]/g, '');
-        link.textContent = phone;
-        tdPhone.appendChild(link);
+    clients.forEach(function (client) {
+      const row = document.createElement('div');
+      row.className = 'client-card';
+
+      // Avatar with initials
+      const avatar = document.createElement('div');
+      avatar.className = 'client-card__avatar';
+      avatar.style.background = avatarColor(client.name);
+      avatar.style.color = avatarTextColor(client.name);
+      avatar.textContent = initialsOf(client.name);
+      row.appendChild(avatar);
+
+      // Text block
+      const body = document.createElement('div');
+      body.className = 'client-card__body';
+
+      const name = document.createElement('div');
+      name.className = 'client-card__name';
+      name.textContent = client.name || 'Senza nome';
+      body.appendChild(name);
+
+      const phoneDisplay = sanitizePhone(client.phone);
+      const phoneEl = document.createElement('div');
+      phoneEl.className = 'client-card__phone';
+      if (phoneDisplay) {
+        const icon = document.createElement('i');
+        icon.className = 'fas fa-phone';
+        phoneEl.appendChild(icon);
+        const text = document.createTextNode(' ' + phoneDisplay);
+        phoneEl.appendChild(text);
       } else {
-        tdPhone.textContent = '—';
-        tdPhone.className = 'text-muted';
+        phoneEl.classList.add('client-card__phone--muted');
+        phoneEl.textContent = 'Nessun numero';
       }
-      tr.appendChild(tdPhone);
+      body.appendChild(phoneEl);
 
-      tbody.appendChild(tr);
+      row.appendChild(body);
+
+      // Call button (only if phone is valid)
+      if (phoneDisplay) {
+        const call = document.createElement('a');
+        call.className = 'client-card__call';
+        call.href = 'tel:' + phoneTelHref(client.phone);
+        call.setAttribute('aria-label', 'Chiama ' + (client.name || ''));
+        const callIcon = document.createElement('i');
+        callIcon.className = 'fas fa-phone-alt';
+        call.appendChild(callIcon);
+        row.appendChild(call);
+      }
+
+      list.appendChild(row);
     });
+
+    c.appendChild(list);
   }
 
   async function runSearch(term) {
-    const tbody = getTbody();
-    if (!tbody) return;
     if (!term) {
-      renderPlaceholder('Digita sopra per cercare un cliente');
+      renderEmpty('Digita sopra per cercare un cliente');
       return;
     }
     try {
@@ -67,12 +134,10 @@
       renderResults(clients);
     } catch (err) {
       console.error('Clients search error:', err);
-      renderPlaceholder('Errore durante la ricerca');
+      renderEmpty('Errore durante la ricerca');
     }
   }
 
-  // Override the globally-declared loadClients() from app.js
-  // so entering the Clients section does NOT auto-load all clients.
   function overrideLoadClients() {
     window.loadClients = function () {
       const input = document.getElementById('clients-search');
@@ -80,7 +145,7 @@
         input.value = '';
         setTimeout(function () { input.focus(); }, 50);
       }
-      renderPlaceholder('Digita sopra per cercare un cliente');
+      renderEmpty('Digita sopra per cercare un cliente');
     };
   }
 
@@ -94,14 +159,13 @@
       timer = setTimeout(function () { runSearch(value); }, DEBOUNCE_MS);
     });
     input.addEventListener('search', function () {
-      // Fires on clear (x) in type="search" inputs
-      if (!input.value) renderPlaceholder('Digita sopra per cercare un cliente');
+      if (!input.value) renderEmpty('Digita sopra per cercare un cliente');
     });
   }
 
   document.addEventListener('DOMContentLoaded', function () {
     overrideLoadClients();
     wireSearchInput();
-    renderPlaceholder('Digita sopra per cercare un cliente');
+    renderEmpty('Digita sopra per cercare un cliente');
   });
 })();

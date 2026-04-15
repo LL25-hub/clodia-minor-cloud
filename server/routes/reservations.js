@@ -3,6 +3,15 @@ const router = express.Router();
 const { supabase } = require('../db');
 const { validateReservation } = require('../middleware/validators');
 
+// Sanitize phone: strip trailing ".0" and placeholder values, return null if empty
+function sanitizePhone(raw) {
+  if (raw === null || raw === undefined) return null;
+  const s = String(raw).trim();
+  if (!s || s === '-' || s === '--') return null;
+  const cleaned = s.replace(/\.0+$/, '').trim();
+  return cleaned || null;
+}
+
 // Helper: expand Supabase row with flat client/room fields
 function flattenReservation(row) {
   if (!row) return row;
@@ -184,7 +193,7 @@ router.post('/', validateReservation, async (req, res, next) => {
         finalClientId = existing.id;
       } else {
         const { data: newClient, error: clErr } = await supabase
-          .from('clients').insert({ name: client_name, phone: client_phone || null })
+          .from('clients').insert({ name: client_name, phone: sanitizePhone(client_phone) })
           .select('id').single();
         if (clErr) throw clErr;
         finalClientId = newClient.id;

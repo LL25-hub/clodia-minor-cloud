@@ -609,6 +609,114 @@ input:focus, textarea:focus, select:focus {
 canvas { background: transparent; }
 
 /* ===========================================================
+   Clients search results (Apple Contacts style)
+   =========================================================== */
+.clients-results__empty {
+  text-align: center;
+  color: var(--ap-text-tertiary);
+  padding: 40px 16px;
+  background: var(--ap-surface);
+  border: 1px solid var(--ap-separator);
+  border-radius: var(--ap-radius);
+  font-size: 0.95rem;
+}
+
+.client-list {
+  background: var(--ap-surface);
+  border: 1px solid var(--ap-separator);
+  border-radius: var(--ap-radius);
+  overflow: hidden;
+  box-shadow: var(--ap-shadow-sm);
+}
+
+.client-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--ap-separator);
+  transition: background 0.12s ease;
+}
+.client-card:last-child { border-bottom: none; }
+.client-card:hover { background: var(--ap-surface-soft); }
+
+.client-card__avatar {
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: -0.01em;
+  user-select: none;
+}
+
+.client-card__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.client-card__name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ap-text);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.client-card__phone {
+  font-size: 0.88rem;
+  color: var(--ap-text-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.client-card__phone i {
+  font-size: 0.72rem;
+  color: var(--ap-text-tertiary);
+  margin-right: 2px;
+}
+.client-card__phone--muted {
+  color: var(--ap-text-tertiary);
+  font-style: italic;
+}
+
+.client-card__call {
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(48, 209, 88, 0.14);
+  color: #30d158;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: background 0.15s ease, transform 0.08s ease;
+}
+.client-card__call:hover {
+  background: rgba(48, 209, 88, 0.22);
+  color: #30d158;
+}
+.client-card__call:active { transform: scale(0.92); }
+
+@media (max-width: 767.98px),
+       (max-width: 991.98px) and (max-height: 500px) and (pointer: coarse) {
+  .client-card { padding: 14px 14px; gap: 12px; }
+  .client-card__avatar { flex: 0 0 40px; width: 40px; height: 40px; font-size: 0.9rem; }
+}
+
+/* ===========================================================
    Reservations: mobile card view (hidden on desktop)
    =========================================================== */
 .reservations-card-view { display: none; }
