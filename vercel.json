@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "rewrites": [
+    { "source": "/rooms", "destination": "/api/index" },
+    { "source": "/rooms/:path*", "destination": "/api/index" },
+    { "source": "/clients", "destination": "/api/index" },
+    { "source": "/clients/:path*", "destination": "/api/index" },
+    { "source": "/reservations", "destination": "/api/index" },
+    { "source": "/reservations/:path*", "destination": "/api/index" },
+    { "source": "/settings", "destination": "/api/index" },
+    { "source": "/settings/:path*", "destination": "/api/index" },
+    { "source": "/dashboard", "destination": "/api/index" },
+    { "source": "/export", "destination": "/api/index" },
+    { "source": "/import", "destination": "/api/index" },
+    { "source": "/api/:path*", "destination": "/api/index" }
+  ]
+}

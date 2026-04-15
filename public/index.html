@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">Sistema di Gestione Hotel</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap">
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/app.js"></script>
+</head>
+<body>
+<div class="d-flex" id="wrapper">
+    <!-- Sidebar -->
+    <div class="border-end bg-dark text-white" id="sidebar-wrapper">
+        <div class="sidebar-heading py-3 px-3 fs-5 fw-semibold border-bottom border-secondary" id="hotel-name-sidebar">Sistema Gestione Hotel</div>
+        <div class="list-group list-group-flush">
+            <a class="list-group-item list-group-item-action bg-dark text-white p-3 active" data-section="dashboard" href="#"><i class="fas fa-tachometer-alt me-2"></i>Panoramica</a>
+            <a class="list-group-item list-group-item-action bg-dark text-white p-3" data-section="reservations" href="#"><i class="fas fa-calendar-check me-2"></i>Registro</a>
+            <a class="list-group-item list-group-item-action bg-dark text-white p-3" data-section="clients" href="#"><i class="fas fa-users me-2"></i>Clienti</a>
+            <a class="list-group-item list-group-item-action bg-dark text-white p-3" data-section="history" href="#"><i class="fas fa-history me-2"></i>Prenotazioni</a>
+            <a class="list-group-item list-group-item-action bg-dark text-white p-3" data-section="add-rooms" href="#"><i class="fas fa-building me-2"></i>Appartamenti</a>
+            <a class="list-group-item list-group-item-action bg-dark text-white p-3" data-section="settings" href="#"><i class="fas fa-cog me-2"></i>Impostazioni</a>
+            <a class="list-group-item list-group-item-action bg-dark text-white p-3" data-section="trash" href="#"><i class="fas fa-trash-alt me-2"></i>Cestino</a>
+        </div>
+    </div>
+
+    <!-- Page content -->
+    <div id="page-content-wrapper" class="bg-light">
+        <!-- Main Content -->
+        <div class="container-fluid p-4">
+            <!-- Dashboard Section -->
+            <div class="section active" id="dashboard">
+                <div class="row">
+                    <div class="col-md-7">
+                        <div class="card mb-4">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0">Arrivi di questa settimana</h5>
+                            </div>
+                            <div class="card-body p-0">
+                                <ul class="list-group list-group-flush" id="check-in-list">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center placeholder-glow">
+                                        <span class="placeholder col-6"></span>
+                                        <span class="placeholder col-2"></span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0">Partenze di questa settimana</h5>
+                            </div>
+                            <div class="card-body p-0">
+                                <ul class="list-group list-group-flush" id="check-out-list">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center placeholder-glow">
+                                        <span class="placeholder col-6"></span>
+                                        <span class="placeholder col-2"></span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-5">
+                        <div class="card h-100">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0">Occupazione Attuale</h5>
+                            </div>
+                            <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                                <div class="position-relative" style="width: 200px; height: 200px;">
+                                    <canvas id="occupancy-chart"></canvas>
+                                    <div class="position-absolute top-50 start-50 translate-middle text-center">
+                                        <div class="fs-5 fw-bold" id="occupancy-rate">65%</div>
+                                        <div class="small text-muted">Occupazione</div>
+                                    </div>
+                                </div>
+                                <div class="d-flex mt-3 gap-4">
+                                    <div class="d-flex align-items-center">
+                                        <span class="d-inline-block me-2 bg-success" style="width: 12px; height: 12px; border-radius: 3px;"></span>
+                                        <span id="free-rooms" class="small">Liberi (35%)</span>
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <span class="d-inline-block me-2 bg-danger" style="width: 12px; height: 12px; border-radius: 3px;"></span>
+                                        <span id="occupied-rooms" class="small">Occupati (65%)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-header bg-white">
+                                    <h5 class="mb-0">Ricerca Appartamenti Disponibili</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form id="available-apartments-form" class="row g-3 align-items-end">
+                                        <div class="col-md-4">
+                                            <label for="available-check-in" class="form-label">Data Check-in</label>
+                                            <input type="date" class="form-control" id="available-check-in" required>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="available-check-out" class="form-label">Data Check-out</label>
+                                            <input type="date" class="form-control" id="available-check-out" required>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <button type="submit" class="btn btn-primary w-100">
+                                                <i class="fas fa-search me-2"></i>Trova Appartamenti Liberi
+                                            </button>
+                                        </div>
+                                    </form>
+                                    
+                                    <div id="available-apartments-results" class="mt-4 d-none">
+                                        <h6 class="border-bottom pb-2 mb-3">Appartamenti disponibili dal <span id="result-check-in"></span> al <span id="result-check-out"></span></h6>
+                                        <div class="row" id="available-apartments-list">
+                                            <!-- I risultati verranno inseriti qui dinamicamente -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reservations Section (Registro) -->
+            <div class="section" id="reservations">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h4 class="mb-0 d-inline-block me-2">Registro</h4>
+                        <span class="month-badge" id="week-display">Marzo 2025</span>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-secondary" id="prev-month">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" id="next-month">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                        <button class="btn btn-sm btn-primary" id="add-reservation">
+                            <i class="fas fa-plus me-1"></i> Prenota
+                        </button>
+                    </div>
+                </div>
+
+                <div class="reservation-legend mb-3">
+                    <div class="card border-light">
+                        <div class="card-body p-2">
+                            <div class="d-flex align-items-center flex-wrap gap-3">
+                                <h6 class="mb-0 me-3">Legenda icone:</h6>
+                                <div class="d-flex align-items-center">
+                                    <span class="reservation-icon-legend me-1">
+                                        <i class="fas fa-umbrella-beach"></i>
+                                    </span>
+                                    <span>Servizio spiaggia</span>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <span class="reservation-icon-legend me-1">
+                                        <i class="fas fa-check-circle"></i>
+                                    </span>
+                                    <span>Pagato</span>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <span class="reservation-icon-legend me-1">
+                                        <i class="fas fa-coins"></i>
+                                    </span>
+                                    <span>Caparra</span>
+                                </div>
+                                
+                                <div class="d-flex align-items-center ms-3">
+                                    <span class="d-inline-block me-1 rounded" style="width: 16px; height: 16px; background: linear-gradient(90deg, #fff34f 0%, #e8f312 100%);"></span>
+                                    <span>Confermato</span>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <span class="d-inline-block me-1 rounded" style="width: 16px; height: 16px; background: linear-gradient(90deg, #0984e3 0%, #74b9ff 100%);"></span>
+                                    <span>Informazione</span>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <span class="d-inline-block me-1 rounded" style="width: 16px; height: 16px; background: linear-gradient(90deg, #feb176 0%, #e28f46 100%);"></span>
+                                    <span>In attesa di conferma</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calendar Container -->
+                <div id="calendar-container">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-sm mb-0" id="reservation-table">
+                                    <thead class="table-light">
+                                    <tr id="reservation-days">
+                                        <th scope="col" class="bg-light">Appartamenti</th>
+                                        <!-- Date headers will be added dynamically -->
+                                    </tr>
+                                    </thead>
+                                    <tbody id="reservation-rooms" class="small">
+                                    <!-- Room rows will be added dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Clients Section -->
+            <div class="section" id="clients">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="mb-0">Clienti</h4>
+                    <button class="btn btn-sm btn-primary" id="add-client">
+                        <i class="fas fa-plus me-1"></i> Nuovo Cliente
+                    </button>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-sm align-middle mb-0" id="clients-table">
+                                <thead class="table-light">
+                                <tr>
+                                    <th scope="col">Nome</th>
+                                    <th scope="col">Telefono</th>
+                                    <th scope="col" width="120">Azioni</th>
+                                </tr>
+                                </thead>
+                                <tbody id="clients-list">
+                                <!-- Clients will be added dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- History Section (Prenotazioni) -->
+            <div class="section" id="history">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="mb-0">Prenotazioni</h4>
+                </div>
+            
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-body p-3">
+                        <form id="history-search-form" class="row align-items-end">
+                            <div class="col-md-4 mb-2 mb-md-0">
+                                <label for="history-client-search" class="form-label small mb-1">Cliente</label>
+                                <input type="text" class="form-control" id="history-client-search" placeholder="Cerca per nome cliente...">
+                            </div>
+                            <div class="col-md-4 mb-2 mb-md-0">
+                                <label for="history-room-search" class="form-label small mb-1">Appartamento</label>
+                                <input type="text" class="form-control" id="history-room-search" placeholder="Cerca per appartamento...">
+                            </div>
+                            <div class="col-md-4 d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search me-1"></i> Cerca
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" id="history-search-reset">
+                                    <i class="fas fa-times me-1"></i> Reset
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            
+                <!-- Tabella prenotazioni con intestazioni corrette -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-sm align-middle mb-0">
+                                <thead class="table-light">
+                                <tr>
+                                    <th scope="col">Cliente</th>
+                                    <th scope="col">Appartamento</th>
+                                    <th scope="col">Check-in</th>
+                                    <th scope="col">Check-out</th>
+                                    <th scope="col">Pagamento</th>
+                                    <th scope="col">Note</th>
+                                    <th scope="col" width="120">Azioni</th>
+                                </tr>
+                                </thead>
+                                <tbody id="rooms-list">
+                                <!-- Prenotazioni verranno aggiunte dinamicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trash Section (Cestino) -->
+            <div class="section" id="trash">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="mb-0">Cestino Prenotazioni</h4>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-danger" id="empty-trash">
+                            <i class="fas fa-trash me-1"></i> Svuota Cestino
+                        </button>
+                    </div>
+                </div>
+                <div class="alert alert-warning">
+                    <i class="fas fa-info-circle me-2"></i> 
+                    Le prenotazioni nel cestino possono essere ripristinate o eliminate definitivamente.
+                </div>
+                
+                <!-- Tabella prenotazioni eliminate -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-sm align-middle mb-0" id="trash-table">
+                                <thead class="table-light">
+                                <tr>
+                                    <th scope="col">Cliente</th>
+                                    <th scope="col">Appartamento</th>
+                                    <th scope="col">Check-in</th>
+                                    <th scope="col">Check-out</th>
+                                    <th scope="col">Pagamento</th>
+                                    <th scope="col">Note</th>
+                                    <th scope="col">Eliminata il</th>
+                                    <th scope="col" width="120">Azioni</th>
+                                </tr>
+                                </thead>
+                                <tbody id="trash-list">
+                                <!-- Prenotazioni eliminate verranno aggiunte dinamicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Rooms Section (Appartamenti) -->
+            <div class="section" id="add-rooms">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="mb-0">Gestione degli Appartamenti</h4>
+                    <button class="btn btn-sm btn-primary" id="add-apartment">
+                        <i class="fas fa-plus me-1"></i> Nuovo Appartamento
+                    </button>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-sm align-middle mb-0">
+                                <thead class="table-light">
+                                <tr>
+                                    <th scope="col" width="40">#</th>
+                                    <th scope="col">Nome</th>
+                                    <th scope="col">Tipologia</th>
+                                    <th scope="col">Piano</th>
+                                    <th scope="col" width="100">Azioni</th>
+                                </tr>
+                                </thead>
+                                <tbody id="apartments-list">
+                                <!-- Appartamenti verranno aggiunti dinamicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div class="section" id="settings">
+                <h4 class="mb-3">Impostazioni</h4>
+
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="card border-0 shadow-sm mb-4">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0">Configurazione dell'Applicazione</h5>
+                            </div>
+                            <div class="card-body">
+                                <form id="settings-form">
+                                    <div class="mb-3">
+                                        <label for="hotel-name-input" class="form-label">Nome Hotel/Residence</label>
+                                        <input type="text" class="form-control" id="hotel-name-input" value="Sistema Gestione Hotel" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Salva Impostazioni</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0">Backup Database</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text text-muted mb-3">
+                                    Esporta il database completo per backup o migrazione. Tutti i dati, inclusi i dati dei clienti
+                                    e lo storico delle prenotazioni, verranno salvati in un unico file CSV.
+                                </p>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-primary" id="backup-db">
+                                        <i class="fas fa-download me-2"></i> Esporta Database
+                                    </button>
+                                    <button class="btn btn-outline-secondary" id="import-db">
+                                        <i class="fas fa-upload me-2"></i> Importa Database
+                                    </button>
+                                    <input type="file" id="import-file" accept=".csv" style="display: none;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reservation Modal -->
+<div class="modal fade" id="reservation-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header py-2">
+                <h5 class="modal-title">Nuova Prenotazione</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-3">
+                <form id="reservation-form">
+                    <input type="hidden" id="reservation-id">
+                    
+                    <!-- Compact Layout -->
+                    <div class="row g-3">
+                        <!-- Cliente e Appartamento in una riga -->
+                        <div class="col-md-6">
+                            <label for="client-search" class="form-label small fw-bold mb-1">Cliente <span class="text-danger">*</span></label>
+                            <div id="client-select-container">
+                                <div class="position-relative">
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                        <input type="text" class="form-control" id="client-search" 
+                                            placeholder="Cerca cliente..." required>
+                                    </div>
+                                    <input type="hidden" id="client-id" value="">
+                                    <div id="client-suggestions" class="autocomplete-suggestions"></div>
+                                    <div id="new-client-fields" class="mt-2 d-none">
+                                        <div class="input-group input-group-sm mb-2">
+                                            <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                            <input type="tel" class="form-control" id="client-phone" 
+                                                placeholder="Numero di telefono">
+                                        </div>
+                                        <div class="form-text mb-2 small">Cliente non trovato. Inserisci il numero di telefono per aggiungere un nuovo cliente.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="room-select" class="form-label small fw-bold mb-1">Appartamento <span class="text-danger">*</span></label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text"><i class="fas fa-building"></i></span>
+                                <select class="form-select" id="room-select" required>
+                                    <option value="">Seleziona appartamento...</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Date Check-in/out in una riga -->
+                        <div class="col-md-6">
+                            <label for="check-in-date" class="form-label small fw-bold mb-1">Check-in <span class="text-danger">*</span></label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text"><i class="fas fa-calendar-plus"></i></span>
+                                <input type="date" class="form-control" id="check-in-date" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="check-out-date" class="form-label small fw-bold mb-1">Check-out <span class="text-danger">*</span></label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text"><i class="fas fa-calendar-minus"></i></span>
+                                <input type="date" class="form-control" id="check-out-date" required>
+                            </div>
+                        </div>
+
+                        <!-- Numero Persone e Servizio Spiaggia -->
+                        <div class="col-md-3">
+                            <label for="num-people" class="form-label small fw-bold mb-1">Persone <span class="text-danger">*</span></label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text"><i class="fas fa-users"></i></span>
+                                <input type="number" class="form-control" id="num-people" min="1" value="1" required>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold mb-1">Servizio</label>
+                            <div class="form-check form-switch mt-1">
+                                <input class="form-check-input" type="checkbox" id="has-beach">
+                                <label class="form-check-label" for="has-beach">
+                                    <i class="fas fa-umbrella-beach text-warning me-1"></i>Spiaggia
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Caparra - ora prende 6 colonne invece di 3 -->
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold mb-1">Caparra</label>
+                            <div class="form-check form-switch mt-1">
+                                <input class="form-check-input" type="checkbox" id="has-deposit">
+                                <label class="form-check-label" for="has-deposit">
+                                    <i class="fas fa-coins text-warning me-1"></i>Versata
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Importi -->
+                        <div class="col-md-4">
+                            <label for="estimate-amount" class="form-label small fw-bold mb-1">Preventivo €</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text"><i class="fas fa-file-invoice-dollar"></i></span>
+                                <input type="number" class="form-control" id="estimate-amount" min="0" step="0.01" value="0">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="cash-amount" class="form-label small fw-bold mb-1">Contanti €</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text"><i class="fas fa-money-bill-wave"></i></span>
+                                <input type="number" class="form-control" id="cash-amount" min="0" step="0.01" value="0">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="transfer-amount" class="form-label small fw-bold mb-1">Bonifico €</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text"><i class="fas fa-university"></i></span>
+                                <input type="number" class="form-control" id="transfer-amount" min="0" step="0.01" value="0">
+                            </div>
+                        </div>
+
+                        <!-- Separatore -->
+                        <div class="col-12">
+                            <hr class="my-2">
+                        </div>
+
+                        <!-- Colore prenotazione -->
+                        <div class="col-12">
+                            <label class="form-label small fw-bold mb-1">Stato Prenotazione</label>
+                            <div class="color-selector d-flex flex-wrap gap-2">
+                                <input type="radio" class="btn-check" name="reservation-color" id="color-yellow" value="yellow" checked>
+                                <label class="btn btn-sm color-btn" for="color-yellow" style="background: linear-gradient(90deg, #fff34f 0%, #e8f312 100%); color: #000;">
+                                    <i class="fas fa-check me-1"></i>Confermata
+                                </label>
+                                
+                                <input type="radio" class="btn-check" name="reservation-color" id="color-blue" value="blue">
+                                <label class="btn btn-sm color-btn" for="color-blue" style="background: linear-gradient(90deg, #0984e3 0%, #74b9ff 100%); color: #fff;">
+                                    <i class="fas fa-info-circle me-1"></i>Informazione
+                                </label>
+                                
+                                <input type="radio" class="btn-check" name="reservation-color" id="color-orange" value="orange">
+                                <label class="btn btn-sm color-btn" for="color-orange" style="background: linear-gradient(90deg, #feb176 0%, #e28f46 100%); color: #fff;">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>In attesa di conferma
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Riferimento cliente -->
+                        <div class="col-12">
+                            <label for="reference" class="form-label small fw-bold mb-1">Riferimento Cliente</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-tag"></i></span>
+                                <input type="text" class="form-control" id="reference" placeholder="Es. Booking.com, Airbnb, Consigliato da...">
+                            </div>
+                        </div>
+                        
+                        <!-- Note (ingrandito e a tutta larghezza) -->
+                        <div class="col-12 mt-2">
+                            <label for="notes" class="form-label small fw-bold mb-1">Note</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-comment"></i></span>
+                                <textarea class="form-control" id="notes" rows="3" placeholder="Note aggiuntive, richieste speciali, informazioni importanti..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer bg-light py-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Annulla
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger d-none" id="delete-reservation">
+                    <i class="fas fa-trash me-1"></i>Elimina
+                </button>
+                <button type="button" class="btn btn-sm btn-primary" id="save-reservation">
+                    <i class="fas fa-save me-1"></i>Salva
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Apartment Form Modal -->
+<div class="modal fade" id="apartment-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="apartment-modal-title">Nuovo Appartamento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="apartment-form">
+                    <input type="hidden" id="apartment-id" value="">
+                    <div class="mb-3">
+                        <label for="apartment-name" class="form-label">Nome Appartamento *</label>
+                        <input type="text" class="form-control" id="apartment-name" placeholder="Es. Appartamento Vista Mare" required>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label for="apartment-type" class="form-label">Tipologia *</label>
+                            <select class="form-select" id="apartment-type" required>
+                                <option value="">Seleziona tipologia</option>
+                                <option value="Monolocale">Monolocale</option>
+                                <option value="Bilocale">Bilocale</option>
+                                <option value="Trilocale">Trilocale</option>
+                                <option value="Quadrilocale">Quadrilocale</option>
+                                <option value="Suite">Suite</option>
+                            </select>
+                        </div>
+                        <div class="col">
+                            <label for="apartment-floor" class="form-label">Piano *</label>
+                            <select class="form-select" id="apartment-floor" required>
+                                <option value="">Seleziona piano</option>
+                                <option value="Piano Terra">Piano Terra</option>
+                                <option value="Primo Piano">Primo Piano</option>
+                                <option value="Secondo Piano">Secondo Piano</option>
+                                <option value="Terzo Piano">Terzo Piano</option>
+                                <option value="Quarto Piano">Quarto Piano</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Annulla</button>
+                <button type="button" class="btn btn-primary" id="save-apartment">Aggiungi Appartamento</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Client Form Modal -->
+<div class="modal fade" id="client-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nuovo Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="client-form">
+                    <div class="mb-3">
+                        <label for="new-client-name" class="form-label">Nome Cliente *</label>
+                        <input type="text" class="form-control" id="new-client-name" placeholder="Es. Mario Rossi" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="new-client-phone" class="form-label">Telefono *</label>
+                        <input type="text" class="form-control" id="new-client-phone" placeholder="Es. 333-1234567" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Annulla</button>
+                <button type="button" class="btn btn-primary" id="save-client">Salva Cliente</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container position-fixed top-0 end-0 p-3">
+    <!-- Toast will be inserted here dynamically -->
+</div>
+
+<!-- Bootstrap & Dependencies -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Custom Scripts -->
+<script src="js/app.js"></script>
+</body>
+</html>

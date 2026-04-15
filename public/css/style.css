@@ -1,0 +1,959 @@
+/* Custom styles to enhance Bootstrap */
+:root {
+  --bs-primary: #0d6efd;
+  --bs-secondary: #6c757d;
+  --bs-success: #198754;
+  --bs-info: #0df05c;
+  --bs-warning: #ffc107;
+  --bs-danger: #dc3545;
+  --bs-light: #f8f9fa;
+  --bs-dark: #212529;
+  --bs-cream: #f9f3e6; /* Colore panna */
+  --bs-saturday: #e2e2e2; /* Grigio chiaro per sabato */
+  --bs-floor-header: #cce5ff; /* Blu chiaro per intestazioni dei piani */
+}
+/* Stile per le intestazioni delle date con giorni della settimana */
+.date-header {
+  padding: 4px 2px !important;
+  vertical-align: middle;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: var(--bs-cream) !important;
+}
+.reservation-status-icon {
+  font-size: 0.8rem;
+  margin-left: 2px;
+  background-color: rgba(255,255,255,0.8);
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reservation-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 8px;
+  gap: 8px;
+  min-width: 80px;
+}
+
+.day-number {
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.day-abbr {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #6c757d;
+  text-transform: uppercase;
+}
+
+.current-day {
+  color: #0d6efd;
+}
+
+/* Weekend columns */
+.weekend-column {
+  background-color: rgba(220, 53, 69, 0.05) !important;
+}
+
+/* Nuovi stili per le barre di prenotazione */
+.reservation-bar {
+  position: absolute;
+  top: 1px;
+  bottom: 1px;
+  left: 0;
+  right: 0;
+  border-radius: 5px;
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.18);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.reservation-bar:hover {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+  transform: translateY(-1px);
+}
+
+.reservation-left, .reservation-right {
+  width: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+
+.reservation-center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reservation-client-name {
+  width: 100%;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.reservation-icon-legend {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    background-color: rgba(13, 110, 253, 0.15);
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+/* Applicare il colore weekend all'intera colonna del calendario */
+.weekend-column,
+td[data-date].weekend-column,
+th.weekend-column,
+#reservation-table th.weekend-column,
+#reservation-table td.weekend-column,
+#reservation-table tbody tr td.weekend-column {
+  background-color: var(--bs-cream) !important;
+}
+
+/* Aumenta la specificità per garantire che il colore venga applicato */
+table#reservation-table th.weekend-column,
+table#reservation-table td.weekend-column {
+  background-color: var(--bs-cream) !important;
+}
+.reservation-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background-color: rgba(255, 255, 255, 0.25);
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+/* Colori per le prenotazioni in stile moderno */
+.reservation-green {
+  background: linear-gradient(90deg, #00b894 0%, #00d68f 100%);
+}
+
+.reservation-purple {
+  background: linear-gradient(90deg, #6c5ce7 0%, #a29bfe 100%);
+}
+
+.reservation-orange {
+  background: linear-gradient(90deg, #d35400 0%, #e67e22 100%);
+}
+
+.reservation-blue {
+  background: linear-gradient(90deg, #0984e3 0%, #74b9ff 100%);
+}
+
+.reservation-teal {
+  background: linear-gradient(90deg, #00b9a0 0%, #4fd1c5 100%);
+}
+
+/* Stile per le celle che hanno prenotazioni - semitrasparenti per vedere le date sotto */
+td[data-date]:not(.reservation-cell):hover {
+  background-color: rgba(13, 110, 253, 0.1);
+  cursor: pointer;
+}
+
+/* Aggiunti gli stili per le icone nella barra delle prenotazioni */
+.fa-user-check, .fa-umbrella-beach, .fa-calendar-check {
+  display: inline-block;
+  margin: 0;
+  padding: 0;
+  font-size: 0.65rem;
+}
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.875rem;
+  background-color: #f5f7fb;
+}
+
+/* Sidebar */
+#sidebar-wrapper {
+  min-height: 100vh;
+  width: 220px;
+  transition: margin 0.25s ease-out;
+}
+
+.sidebar-heading {
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.5px;
+}
+
+#page-content-wrapper {
+  min-width: 100vw;
+  min-height: 100vh;
+}
+
+/* Navigation */
+.list-group-item {
+  display: flex;
+  align-items: center;
+  font-size: 0.85rem;
+  padding-left: 1.5rem;
+  border: none;
+  transition: all 0.2s;
+}
+
+.list-group-item.active {
+  background-color: rgba(13, 110, 253, 0.8);
+  border-left: 4px solid #fff;
+}
+
+.list-group-item:hover:not(.active) {
+  background-color: rgba(255,255,255,0.1);
+}
+
+/* Content sections */
+.section {
+  display: none;
+}
+
+.section.active {
+  display: block;
+}
+
+/* Card styling */
+.card {
+  border-radius: 0.375rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  transition: all 0.2s;
+}
+
+.card:hover {
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
+}
+
+.card-header {
+  font-weight: 500;
+  padding: 0.75rem 1rem;
+}
+
+/* Tables */
+.table-sm th, .table-sm td {
+  padding: 0.3rem 0.5rem;
+  font-size: 0.8rem;
+  height: 28px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+th[scope="col"] {
+  font-weight: 500;
+  font-size: 0.8rem;
+}
+
+/* Colonne compatte per la tabella di prenotazione */
+.room-cell {
+  font-weight: 500;
+  position: sticky;
+  left: 0;
+  background-color: rgba(248, 249, 250, 0.9);
+  z-index: 2;
+  width: 70px !important;
+  max-width: 70px !important;
+  height: 30px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.75rem;
+  padding: 0.3rem 0.3rem !important;
+  border-right: 1px solid #dee2e6 !important;
+}
+
+.room-number {
+  font-weight: 500;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.room-type {
+  font-weight: normal;
+  font-size: 0.7rem;
+  color: var(--bs-secondary);
+}
+
+.available-indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.reservation-cell {
+  padding: 0 !important;
+  position: relative;
+  vertical-align: middle;
+  height: 30px; /* Altezza ridotta */
+}
+
+.reservation-bar {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 0;
+  right: 0;
+  border-radius: 3px;
+  color: #212529;
+  font-size: 0.7rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.reservation-bar:hover {
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  transform: translateY(-1px);
+}
+
+/* Modifica: Classe per le colonne del sabato (grigio) */
+.saturday-column {
+  background-color: var(--bs-saturday) !important; /* Grigio chiaro per le colonne del sabato */
+}
+
+/* Stile per le celle che contengono prenotazioni che includono sabato */
+.includes-saturday {
+  background-color: rgba(226, 226, 226, 0.3) !important; /* Versione trasparente del grigio */
+}
+
+/* Stile per le intestazioni fisse */
+#reservation-days {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: #f8f9fa;
+}
+
+/* Nuovi colori per le prenotazioni con gradienti netti e senza bordi */
+
+/* Base per prenotazioni non pagate (grigio) */
+.reservation-unpaid {
+  background-color: rgba(108, 117, 125, 0.2) !important;
+  color: #212529;
+}
+
+/* Solo caparra (grigio con finale giallo) */
+.reservation-deposit {
+  background: linear-gradient(90deg,
+  rgba(108, 117, 125, 0.2) 0%,
+  rgba(108, 117, 125, 0.2) 80%,
+  rgba(255, 255, 0, 0.85) 80.1%) !important;
+  color: #212529;
+}
+
+/* Pagata (giallo base più acceso) */
+.reservation-paid {
+  background-color: rgba(255, 255, 0, 0.85) !important;
+  color: #212529;
+}
+
+/* Pagata in contanti (giallo con finale verde) */
+.reservation-paid-cash {
+  background: linear-gradient(90deg,
+  rgba(255, 255, 0, 0.85) 0%,
+  rgba(255, 255, 0, 0.85) 80%,
+  rgba(40, 167, 69, 0.5) 80.1%) !important;
+  color: #212529;
+}
+
+/* Pagata con bonifico (giallo con finale rosso) */
+.reservation-paid-transfer {
+  background: linear-gradient(90deg,
+  rgba(255, 255, 0, 0.85) 0%,
+  rgba(255, 255, 0, 0.85) 80%,
+  rgba(220, 53, 69, 0.5) 80.1%) !important;
+  color: #212529;
+}
+
+/* Pagata con metodo misto (giallo con finale verde e rosso) */
+.reservation-paid-mixed {
+  background: linear-gradient(90deg,
+  rgba(255, 255, 0, 0.85) 0%,
+  rgba(255, 255, 0, 0.85) 70%,
+  rgba(40, 167, 69, 0.5) 70.1%,
+  rgba(40, 167, 69, 0.5) 85%,
+  rgba(220, 53, 69, 0.5) 85.1%) !important;
+  color: #212529;
+}
+
+/* Intestazione piano */
+.floor-header td {
+  background-color: var(--bs-floor-header) !important; /* Blu chiaro per le intestazioni dei piani */
+  border-top: 1px solid #b8daff;
+  border-bottom: 1px solid #b8daff;
+  color: #000000; /* Colore nero per il testo */
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.75rem !important;
+  padding: 4px 8px !important;
+}
+
+/* Status badges */
+.status-badge {
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.2rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+/* Badge per opzioni spiaggia/caparra nello storico */
+.feature-badge {
+  display: inline-block;
+  padding: 0.2rem 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: 0.25rem;
+  margin-right: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.beach-badge {
+  background-color: #e3f2fd;
+  color: #0d6efd;
+  border: 1px solid #0d6efd;
+}
+
+.deposit-badge {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeeba;
+}
+
+.ref-badge {
+  background-color: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+}
+
+/* Empty cell hover effect - MIGLIORATO */
+td[data-date]:not(.reservation-cell):hover {
+  background-color: rgba(13, 110, 253, 0.1);
+  cursor: pointer;
+}
+
+/* Custom toast */
+.toast {
+  min-width: 200px;
+  backdrop-filter: blur(5px);
+}
+
+/* Chart */
+#occupancy-chart {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Loading e stati empty */
+.loading-indicator .spinner-border {
+  width: 2rem;
+  height: 2rem;
+}
+
+.empty-state {
+  color: #6c757d;
+}
+
+.error-state {
+  color: #dc3545;
+}
+
+/* Form validation */
+.is-invalid {
+  border-color: #dc3545;
+}
+
+/* Client search results */
+.client-result {
+  cursor: pointer;
+}
+
+.client-result:hover {
+  background-color: #f8f9fa;
+}
+
+/* STILI PER LA VISUALIZZAZIONE DELLE NOTE NELLO STORICO */
+
+/* Miglioramenti per la colonna delle note */
+.notes-cell {
+  vertical-align: middle !important;
+  min-width: 150px;
+  max-width: 200px;
+  white-space: normal !important;
+  word-wrap: break-word;
+  line-height: 1.3;
+  padding: 8px !important;
+  height: auto !important;
+}
+
+/* Ridefinizione per le celle di tabella nello storico */
+#history-table td {
+  padding: 8px;
+  vertical-align: middle;
+}
+
+/* Impedisce alle celle di tabella di avere contenuto troncato */
+#history-table td:not(.notes-cell) {
+  white-space: normal;
+  overflow: visible;
+}
+
+/* Stile specifico per le note di testo */
+.notes-text {
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: #495057;
+  margin-top: 0.5rem;
+  white-space: normal;
+  word-break: break-word;
+}
+
+/* Allineamento verticale per la colonna Note */
+#history-table th:nth-child(6) {
+  min-width: 150px;
+  max-width: 200px;
+  vertical-align: middle;
+}
+
+/* Miglioramento applicazione calendario */
+#reservation-table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+#reservation-table th, #reservation-table td {
+  border: 1px solid #dee2e6;
+}
+
+/* Migliora la leggibilità delle intestazioni calendario */
+#reservation-days th {
+  font-weight: 600;
+  vertical-align: middle;
+  text-align: center;
+  padding: 0.5rem 0.25rem;
+  background-color: #f8f9fa;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* Tooltip migliorato per le prenotazioni */
+.bs-tool-auto[data-popper-placement^=top] .tooltip-inner,
+.bs-tooltip-top .tooltip-inner {
+  max-width: 250px;
+  padding: 0.5rem;
+  text-align: left;
+}
+
+/* Miglioramento pulsanti azioni */
+.btn-action {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  border-radius: 0.2rem;
+}
+
+/* Responsive tweaks - MIGLIORATI */
+@media (min-width: 768px) {
+  #wrapper {
+    overflow-x: hidden;
+  }
+
+  #page-content-wrapper {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+@media (max-width: 767.98px) {
+  /* Sidebar compatta su mobile */
+  #sidebar-wrapper {
+    width: 50px;
+    min-width: 50px;
+    overflow: hidden;
+  }
+
+  .sidebar-heading, .list-group-item span {
+    display: none;
+  }
+
+  .list-group-item {
+    padding: 0.75rem 0;
+    justify-content: center;
+  }
+
+  .list-group-item i {
+    margin-right: 0;
+  }
+
+  /* Miglioramenti specifici per mobile */
+  .btn-sm {
+    padding: 0.375rem 0.5rem;
+    font-size: 0.85rem;
+  }
+
+  /* Ottimizza modal per mobile */
+  .modal-dialog {
+    margin: 0.5rem;
+    max-width: none;
+  }
+
+  /* Migliora margini e spaziature su mobile */
+  .card {
+    margin-bottom: 1rem;
+  }
+
+  .card-body {
+    padding: 0.75rem;
+  }
+
+  /* Migliora layout tabelle su mobile */
+  .table-sm th, .table-sm td {
+    padding: 0.25rem 0.4rem;
+    font-size: 0.75rem;
+  }
+
+  /* Modifiche responsive per la visualizzazione delle note su mobile */
+  .notes-cell {
+    min-width: 100px;
+    max-width: 150px;
+  }
+
+  /* Modifiche responsive per la colonna su mobile */
+  .room-cell {
+    width: 60px !important;
+    max-width: 60px !important;
+    font-size: 0.7rem;
+    padding: 0.2rem !important;
+  }
+
+  /* Ottimizza il calendario prenotazioni su mobile */
+  .reservation-client {
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Ottimizza visualizzazione feature badge su mobile */
+  .feature-badge {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.3rem;
+    margin-bottom: 0.2rem;
+  }
+}
+
+/* Miglioramenti form */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-control:focus {
+  border-color: #86b7fe;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Stili per i badge nella tabella delle prenotazioni */
+.badge-sm {
+  font-size: 65%;
+  padding: 0.15em 0.4em;
+  vertical-align: middle;
+}
+
+/* Miglioramenti header e footer delle modali */
+.modal-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.modal-footer {
+  background-color: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.modal-title {
+  font-weight: 600;
+}
+
+/* Miglioramenti sezioni nel form */
+.form-section-header {
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  color: #0d6efd;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border-bottom: 1px solid #e9ecef;
+  padding-bottom: 0.5rem;
+}
+
+/* Transizioni fluide per elementi interattivi */
+.btn, .form-control, .list-group-item, .card {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Miglioramenti visuali per checkbox e radio */
+.form-check-input:checked {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+}
+
+.form-check-input:focus {
+  border-color: #86b7fe;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Miglioramenti per etichette di form */
+.form-label {
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #495057;
+}
+
+/* NUOVI STILI AGGIUNTI */
+
+/* Stile per rendere più visibile l'indicatore del mese corrente */
+.month-badge {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #0d6efd;
+  background-color: #e6f2ff;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.25rem;
+  border: 1px solid #b8daff;
+  display: inline-block;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Stili per la legenda */
+.reservation-legend {
+  background-color: white;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid #dee2e6;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.legend-title {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #495057;
+  margin-right: 1rem;
+}
+
+.legend-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  font-size: 0.75rem;
+  margin-right: 0.5rem;
+}
+
+.legend-color {
+  display: inline-block;
+  width: 30px; /* Aumentato da 18px */
+  height: 18px;
+  margin-right: 5px;
+  border-radius: 3px;
+  border: 1px solid rgba(0,0,0,0.1);
+}
+
+.legend-text {
+  color: #495057;
+  font-weight: 500;
+}
+
+/* Stili responsivi per la legenda su dispositivi mobili */
+@media (max-width: 767.98px) {
+  .reservation-legend {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .legend-title {
+    margin-bottom: 0.5rem;
+  }
+
+  .legend-items {
+    gap: 0.5rem;
+  }
+
+  .legend-item {
+    margin-bottom: 0.25rem;
+  }
+}
+
+/* Badge per opzioni spiaggia/caparra nello storico */
+.bg-orange {
+  background-color: #fd7e14 !important;
+  color: #fff;
+}
+
+/* Classi colori per le prenotazioni nel registro basate sulla selezione dell'utente */
+.reservation-cell .reservation-bar.reservation-color-yellow,
+.legend-color.reservation-color-yellow {
+  background: linear-gradient(90deg, #fff34f 0%, #e8f312 100%);
+  color: #000;
+  border: 2px solid rgba(0, 0, 0, 0.8);
+}
+
+.reservation-cell .reservation-bar.reservation-color-blue,
+.legend-color.reservation-color-blue {
+  background: linear-gradient(90deg, #0984e3 0%, #74b9ff 100%);
+  color: #fff;
+  border: 2px solid rgba(0, 0, 0, 0.8);
+}
+
+.reservation-cell .reservation-bar.reservation-color-orange,
+.legend-color.reservation-color-orange {
+  background: linear-gradient(90deg, #feb176 0%, #e28f46 100%);
+  color: #fff;
+  border: 2px solid rgba(0, 0, 0, 0.8);
+}
+
+/* Improve reservation icons contrast and visibility */
+.reservation-bar .reservation-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin: 0 2px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Special styling for icons based on reservation color */
+.reservation-color-yellow .reservation-icon {
+  background-color: rgba(0, 0, 0, 0.15);
+  color: #000;
+}
+
+.reservation-color-blue .reservation-icon,
+.reservation-color-orange .reservation-icon {
+  background-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+
+/* Stili per il selettore di colori nei form */
+.color-selector .color-btn {
+  width: 100%;
+  text-align: left;
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 6px;
+  padding: 8px 12px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.color-selector .color-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.color-selector .btn-check:checked + .color-btn {
+  border: 2px solid rgba(0,0,0,0.3);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  transform: translateY(-2px);
+}
+
+/* Sfondo panna per TUTTE le celle delle tabelle - alta specificità */
+table td, 
+table th, 
+.table td, 
+.table th,
+td[data-date],
+.date-header,
+#reservation-table td,
+#reservation-table th,
+thead.table-light,
+tbody tr td,
+.table > :not(caption) > * > *,
+.weekend-column {
+  background-color: var(--bs-cream) !important;
+}
+
+/* ECCEZIONI - Colonne del sabato (massima specificità) */
+.saturday-column,
+tr th.saturday-column,
+tr td.saturday-column,
+table#reservation-table th.saturday-column,
+table#reservation-table td.saturday-column {
+  background-color: var(--bs-saturday) !important;
+}
+
+/* ECCEZIONI - Intestazioni piano (massima specificità) */
+.floor-header td,
+tr.floor-header td,
+table tbody tr.floor-header td {
+  background-color: var(--bs-floor-header) !important;
+  border-top: 1px solid #b8daff;
+  border-bottom: 1px solid #b8daff;
+  color: #000000; /* Colore nero per il testo */
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.75rem !important;
+  padding: 4px 8px !important;
+}
+
+/* Mantieni la tabella visibile con bordi più evidenti */
+.table {
+  border-color: #dee2e6;
+}
