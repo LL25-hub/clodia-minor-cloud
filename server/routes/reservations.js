@@ -76,7 +76,7 @@ router.get('/dashboard/stats', async (req, res, next) => {
     oneWeekLater.setDate(oneWeekLater.getDate() + 7);
     const weekEnd = oneWeekLater.toISOString().split('T')[0];
 
-    const [checkInsRes, checkOutsRes, roomsRes, occupiedRes] = await Promise.all([
+    const [checkInsRes, checkOutsRes, statsRes] = await Promise.all([
       supabase.from('reservations')
         .select('id, check_in_date, client:clients(name), room:rooms(room_number)')
         .eq('deleted', false)
@@ -87,17 +87,13 @@ router.get('/dashboard/stats', async (req, res, next) => {
         .eq('deleted', false)
         .gte('check_out_date', today).lte('check_out_date', weekEnd)
         .order('check_out_date'),
-      supabase.from('rooms').select('id', { count: 'exact', head: true }),
-      supabase.from('reservations')
-        .select('room_id')
-        .eq('deleted', false)
-        .lte('check_in_date', today)
-        .gt('check_out_date', today)
+      // Single SQL call that returns total rooms + distinct occupied rooms today
+      supabase.rpc('get_occupancy_stats')
     ]);
 
     if (checkInsRes.error) throw checkInsRes.error;
     if (checkOutsRes.error) throw checkOutsRes.error;
-    if (occupiedRes.error) throw occupiedRes.error;
+    if (statsRes.error) throw statsRes.error;
 
     const flattenForDash = arr => arr.map(r => ({
       id: r.id,
@@ -107,9 +103,9 @@ router.get('/dashboard/stats', async (req, res, next) => {
       room_number: r.room?.room_number
     }));
 
-    const totalRooms = roomsRes.count || 0;
-    const uniqueRoomIds = new Set((occupiedRes.data || []).map(r => r.room_id));
-    const occupiedRooms = uniqueRoomIds.size;
+    const stats = Array.isArray(statsRes.data) ? statsRes.data[0] : statsRes.data;
+    const totalRooms = Number(stats?.total) || 0;
+    const occupiedRooms = Number(stats?.occupied) || 0;
     const occupancyRate = totalRooms > 0 ? Math.round((occupiedRooms / totalRooms) * 100) : 0;
 
     res.json({

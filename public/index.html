@@ -20,6 +20,10 @@
     <script src="js/api.js"></script>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Flatpickr (date range picker) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/it.js" defer></script>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/mobile.css">
@@ -29,6 +33,7 @@
     <script src="js/clients-search.js" defer></script>
     <script src="js/reservations-mobile.js" defer></script>
     <script src="js/people-stepper.js" defer></script>
+    <script src="js/date-range-picker.js" defer></script>
 </head>
 <body>
 <!-- Mobile top bar (visible only on mobile) -->
@@ -47,8 +52,8 @@
         <div class="sidebar-heading py-3 px-3 fs-5 fw-semibold border-bottom border-secondary" id="hotel-name-sidebar">Sistema Gestione Hotel</div>
         <div class="list-group list-group-flush">
             <a class="list-group-item list-group-item-action bg-dark text-white p-3 active" data-section="dashboard" href="#"><i class="fas fa-tachometer-alt me-2"></i>Panoramica</a>
-            <a class="list-group-item list-group-item-action bg-dark text-white p-3" data-section="reservations" href="#"><i class="fas fa-calendar-check me-2"></i>Registro</a>
             <a class="list-group-item list-group-item-action bg-dark text-white p-3" data-section="clients" href="#"><i class="fas fa-users me-2"></i>Clienti</a>
+            <a class="list-group-item list-group-item-action bg-dark text-white p-3" data-section="reservations" href="#"><i class="fas fa-calendar-check me-2"></i>Registro</a>
             <a class="list-group-item list-group-item-action bg-dark text-white p-3" data-section="history" href="#"><i class="fas fa-history me-2"></i>Prenotazioni</a>
             <a class="list-group-item list-group-item-action bg-dark text-white p-3" data-section="add-rooms" href="#"><i class="fas fa-building me-2"></i>Appartamenti</a>
             <a class="list-group-item list-group-item-action bg-dark text-white p-3" data-section="trash" href="#"><i class="fas fa-trash-alt me-2"></i>Cestino</a>
@@ -128,21 +133,23 @@
                                 </div>
                                 <div class="card-body">
                                     <form id="available-apartments-form" class="row g-3 align-items-end">
-                                        <div class="col-md-4">
-                                            <label for="available-check-in" class="form-label">Data Check-in</label>
-                                            <input type="date" class="form-control" id="available-check-in" required>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label for="available-check-out" class="form-label">Data Check-out</label>
-                                            <input type="date" class="form-control" id="available-check-out" required>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <button type="submit" class="btn btn-primary w-100">
-                                                <i class="fas fa-search me-2"></i>Trova Appartamenti Liberi
-                                            </button>
+                                        <div class="col-12">
+                                            <label for="available-range" class="form-label">Periodo soggiorno</label>
+                                            <div class="date-range-trigger" id="date-range-trigger">
+                                                <i class="far fa-calendar-alt date-range-trigger__icon"></i>
+                                                <input type="text"
+                                                       class="form-control date-range-trigger__input"
+                                                       id="available-range"
+                                                       placeholder="Tocca per scegliere check-in e check-out"
+                                                       readonly
+                                                       required>
+                                            </div>
+                                            <!-- Hidden fields so existing JS continues to work -->
+                                            <input type="hidden" id="available-check-in">
+                                            <input type="hidden" id="available-check-out">
                                         </div>
                                     </form>
-                                    
+
                                     <div id="available-apartments-results" class="mt-4 d-none">
                                         <h6 class="border-bottom pb-2 mb-3">Appartamenti disponibili dal <span id="result-check-in"></span> al <span id="result-check-out"></span></h6>
                                         <div class="row" id="available-apartments-list">

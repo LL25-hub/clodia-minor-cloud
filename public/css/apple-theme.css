@@ -79,8 +79,14 @@ table#reservation-table td.weekend-column {
 tr th.saturday-column,
 tr td.saturday-column,
 table#reservation-table th.saturday-column,
-table#reservation-table td.saturday-column {
-  background-color: var(--ap-surface-soft) !important;
+table#reservation-table td.saturday-column,
+#reservation-table tbody tr td.saturday-column,
+#reservation-table tbody tr td.saturday-column.reservation-cell {
+  background-color: #d7d7dc !important;
+}
+#reservation-table .date-header.saturday-column {
+  background-color: #c7c7cc !important;
+  color: var(--ap-text);
 }
 
 .floor-header td,
@@ -607,6 +613,77 @@ input:focus, textarea:focus, select:focus {
 
 /* ---------- Chart background friendly ---------- */
 canvas { background: transparent; }
+
+/* ===========================================================
+   Date-range trigger (Apple-style)
+   =========================================================== */
+.date-range-trigger {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--ap-surface);
+  border: 1px solid var(--ap-separator-strong);
+  border-radius: 12px;
+  padding: 0 14px;
+  min-height: 52px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.date-range-trigger:hover { border-color: rgba(0, 113, 227, 0.35); }
+.date-range-trigger:focus-within {
+  border-color: var(--ap-accent);
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
+}
+.date-range-trigger__icon {
+  color: var(--ap-accent);
+  font-size: 1rem;
+  margin-right: 10px;
+  flex: 0 0 auto;
+}
+.date-range-trigger__input {
+  flex: 1;
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  font-size: 0.95rem !important;
+  font-weight: 500;
+  color: var(--ap-text) !important;
+  cursor: pointer;
+  box-shadow: none !important;
+  min-height: 52px;
+}
+.date-range-trigger__input::placeholder {
+  color: var(--ap-text-tertiary);
+  font-weight: 400;
+}
+.date-range-trigger__input:focus { box-shadow: none !important; }
+
+/* Flatpickr calendar: tweak to match Apple palette */
+.flatpickr-calendar {
+  border-radius: var(--ap-radius-lg) !important;
+  box-shadow: var(--ap-shadow-lg) !important;
+  border: 1px solid var(--ap-separator) !important;
+}
+.flatpickr-day.today {
+  border-color: var(--ap-accent) !important;
+  color: var(--ap-accent);
+}
+.flatpickr-day.selected,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange,
+.flatpickr-day.selected:hover,
+.flatpickr-day.startRange:hover,
+.flatpickr-day.endRange:hover {
+  background: var(--ap-accent) !important;
+  border-color: var(--ap-accent) !important;
+  color: #fff !important;
+}
+.flatpickr-day.inRange {
+  background: rgba(0, 113, 227, 0.14) !important;
+  border-color: transparent !important;
+  box-shadow: -5px 0 0 rgba(0, 113, 227, 0.14), 5px 0 0 rgba(0, 113, 227, 0.14) !important;
+  color: var(--ap-text);
+}
 
 /* ===========================================================
    People stepper (reservation form "Persone" field)

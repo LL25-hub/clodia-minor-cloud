@@ -114,7 +114,8 @@ async function deleteReservation(reservationId) {
   try {
     // Chiamata API per eliminare la prenotazione (ora è un soft delete)
     await api.reservations.delete(reservationId);
-    
+    window.invalidateSectionCache && window.invalidateSectionCache(['dashboard', 'reservations', 'history', 'trash']);
+
     // Mostra messaggio di successo
     uiUtils.showToast('Prenotazione spostata nel cestino!', 'success');
     
@@ -144,20 +145,17 @@ document.addEventListener('DOMContentLoaded', function() {
   // Initialize navigation
   initNavigation();
   
-  // Load initial data
+  // Load initial data (mark caches fresh to avoid duplicate reload on first tab-switch)
   loadSettings();
-  loadDashboardData();
-  initReservationCalendar();
-  loadRooms();
+  loadDashboardData(); markLoaded('dashboard');
+  initReservationCalendar(); markLoaded('reservations');
+  loadRooms(); markLoaded('add-rooms');
   loadClients();
-  loadReservationsHistory();
-  loadTrash();
+  loadReservationsHistory(); markLoaded('history');
+  loadTrash(); markLoaded('trash');
   
   // Add event listeners
   addGlobalEventListeners();
-  
-  // Mostra messaggio di benvenuto
-  uiUtils.showToast('Benvenuto in Clodia Minor!', 'primary');
 });
 
 // Carica le dipendenze esterne
@@ -222,38 +220,58 @@ function initBootstrapComponents() {
   }
 }
 
+// Section cache: skip reloads that happened in the last N ms
+const SECTION_CACHE_TTL_MS = 60 * 1000;
+const sectionLoadedAt = {};
+
+/** Mark all sections as stale (force reload on next visit). Called after mutations. */
+window.invalidateSectionCache = function (keys) {
+  if (!keys) { for (const k in sectionLoadedAt) delete sectionLoadedAt[k]; return; }
+  (Array.isArray(keys) ? keys : [keys]).forEach(k => { delete sectionLoadedAt[k]; });
+};
+
+function shouldReload(sectionKey) {
+  const last = sectionLoadedAt[sectionKey] || 0;
+  return (Date.now() - last) > SECTION_CACHE_TTL_MS;
+}
+
+function markLoaded(sectionKey) {
+  sectionLoadedAt[sectionKey] = Date.now();
+}
+
 function initNavigation() {
   const menuItems = document.querySelectorAll('.list-group-item');
   const sections = document.querySelectorAll('.section');
-  
+
   menuItems.forEach(item => {
     item.addEventListener('click', function(e) {
       e.preventDefault();
       const targetSection = this.getAttribute('data-section');
-      
+
       // Update active menu item
       menuItems.forEach(mi => mi.classList.remove('active'));
       this.classList.add('active');
-      
+
       // Show target section
       sections.forEach(section => {
         section.classList.remove('active');
         if (section.id === targetSection) {
           section.classList.add('active');
-          
-          // Refresh section content if needed
+
+          // Refresh section content only if cache expired
           if (targetSection === 'dashboard') {
-            loadDashboardData();
+            if (shouldReload('dashboard')) { loadDashboardData(); markLoaded('dashboard'); }
           } else if (targetSection === 'reservations') {
-            refreshReservationCalendar();
+            if (shouldReload('reservations')) { refreshReservationCalendar(); markLoaded('reservations'); }
           } else if (targetSection === 'clients') {
-            loadClients();
+            // Clients section is search-driven, no bulk preload
+            if (typeof window.loadClients === 'function') window.loadClients();
           } else if (targetSection === 'history') {
-            loadReservationsHistory();
+            if (shouldReload('history')) { loadReservationsHistory(); markLoaded('history'); }
           } else if (targetSection === 'add-rooms') {
-            loadRooms();
+            if (shouldReload('add-rooms')) { loadRooms(); markLoaded('add-rooms'); }
           } else if (targetSection === 'trash') {
-            loadTrash();
+            if (shouldReload('trash')) { loadTrash(); markLoaded('trash'); }
           }
         }
       });
@@ -385,24 +403,21 @@ function setupDuplicateCheckboxes() {
 }
 
 // Inizializza i campi data nel form di ricerca appartamenti disponibili
+// (ora gestiti dal date-range picker Flatpickr — niente pre-popolazione)
 function setupAvailableApartmentsForm() {
+  // No-op: the hidden fields #available-check-in / #available-check-out are
+  // populated by js/date-range-picker.js when the user picks both dates.
+  return;
+  // eslint-disable-next-line no-unreachable
   const checkInField = document.getElementById('available-check-in');
   const checkOutField = document.getElementById('available-check-out');
-  
   if (checkInField && checkOutField) {
-    // Imposta la data di oggi come valore predefinito per check-in
     const today = dateUtils.today();
     checkInField.value = today;
-    
-    // Imposta la data di check-out a 7 giorni dopo (soggiorno standard)
     checkOutField.value = dateUtils.addDays(today, 7);
-    
-    // Aggiunge un event listener per garantire che check-out sia sempre dopo check-in
     checkInField.addEventListener('change', function() {
       const checkOutDate = new Date(checkOutField.value);
       const newCheckInDate = new Date(this.value);
-      
-      // Se check-out è prima o uguale a check-in, imposta check-out a check-in + 1 giorno
       if (checkOutDate <= newCheckInDate) {
         checkOutField.value = dateUtils.addDays(this.value, 1);
       }
@@ -1600,6 +1615,7 @@ async function saveReservation() {
       await api.reservations.create(reservationData);
       uiUtils.showToast('Prenotazione creata con successo!', 'success');
     }
+    window.invalidateSectionCache && window.invalidateSectionCache(['dashboard', 'reservations', 'history']);
     
     // Ripristina il pulsante e chiudi il modale
     saveBtn.disabled = false;
