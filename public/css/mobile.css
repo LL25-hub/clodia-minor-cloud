@@ -1,0 +1,357 @@
+/* ===========================================================
+   Mobile-first optimizations for Clodia Minor
+   Overrides desktop styles when viewport <= 767.98px.
+   =========================================================== */
+
+/* Respect iOS safe areas */
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Mobile top bar (hidden on desktop via d-md-none) */
+#mobile-topbar {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  background: #212529;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  z-index: 1050;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+#mobile-topbar button {
+  background: transparent;
+  border: none;
+  color: #fff;
+  width: 44px;
+  height: 44px;
+  font-size: 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#mobile-topbar button:active {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+#mobile-topbar-title {
+  font-weight: 600;
+  font-size: 1rem;
+  flex: 1;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 8px;
+}
+
+/* Backdrop overlay when sidebar is open on mobile */
+#sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1040;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+body.sidebar-open #sidebar-backdrop {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ===========================================================
+   Mobile layout (<= 767.98px)
+   =========================================================== */
+@media (max-width: 767.98px) {
+  html, body {
+    overflow-x: hidden;
+  }
+
+  /* Full-width content, sidebar overlays */
+  #wrapper {
+    display: block;
+  }
+
+  #page-content-wrapper {
+    min-width: 100vw;
+    width: 100vw;
+    min-height: calc(100vh - 56px);
+  }
+
+  #page-content-wrapper .container-fluid {
+    padding: 12px !important;
+  }
+
+  /* Off-canvas sidebar: slide-in drawer */
+  #sidebar-wrapper {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 82vw !important;
+    max-width: 320px !important;
+    min-width: 0 !important;
+    height: 100vh;
+    overflow-y: auto;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease-out;
+    z-index: 1045;
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.3);
+    padding-top: env(safe-area-inset-top);
+  }
+
+  body.sidebar-open #sidebar-wrapper {
+    transform: translateX(0);
+  }
+
+  /* Show labels in open sidebar (override desktop hide) */
+  #sidebar-wrapper .sidebar-heading,
+  #sidebar-wrapper .list-group-item span {
+    display: inline !important;
+  }
+
+  #sidebar-wrapper .sidebar-heading {
+    display: block !important;
+    font-size: 1.1rem;
+    padding: 16px 20px !important;
+  }
+
+  #sidebar-wrapper .list-group-item {
+    padding: 14px 20px !important;
+    font-size: 0.95rem;
+    justify-content: flex-start !important;
+    min-height: 48px;
+  }
+
+  #sidebar-wrapper .list-group-item i {
+    margin-right: 12px !important;
+    width: 20px;
+    text-align: center;
+  }
+
+  /* Prevent iOS form zoom on input focus */
+  input, select, textarea, .form-control, .form-select {
+    font-size: 16px !important;
+  }
+
+  /* Improved touch targets */
+  .btn {
+    min-height: 44px;
+    padding: 0.5rem 0.9rem;
+  }
+
+  .btn-sm {
+    min-height: 36px;
+    padding: 0.35rem 0.7rem;
+    font-size: 0.875rem;
+  }
+
+  .form-control, .form-select {
+    min-height: 44px;
+    padding: 0.55rem 0.75rem;
+  }
+
+  .form-check-input {
+    width: 1.25em;
+    height: 1.25em;
+    margin-top: 0.15em;
+  }
+
+  .form-check-label {
+    padding-left: 0.25rem;
+    line-height: 1.4;
+  }
+
+  /* Cards and spacing */
+  .card {
+    border-radius: 10px;
+    margin-bottom: 12px;
+  }
+
+  .card-header {
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+  }
+
+  .card-body {
+    padding: 1rem;
+  }
+
+  .card h5, .card h6 {
+    font-size: 1rem;
+  }
+
+  /* Page headings tighter on mobile */
+  h1, .h1 { font-size: 1.4rem; }
+  h2, .h2 { font-size: 1.25rem; }
+  h3, .h3 { font-size: 1.1rem; }
+  h4, .h4 { font-size: 1.05rem; }
+  h5, .h5 { font-size: 1rem; }
+  h6, .h6 { font-size: 0.9rem; }
+
+  /* Dashboard: single column layout */
+  #dashboard .row > [class*="col-"] {
+    width: 100%;
+    max-width: 100%;
+    flex: 0 0 100%;
+    margin-bottom: 8px;
+  }
+
+  /* Occupancy chart smaller on mobile */
+  #dashboard canvas,
+  #dashboard .position-relative[style*="width: 200px"] {
+    max-width: 160px !important;
+    max-height: 160px !important;
+  }
+
+  /* Tables: horizontal scroll, never overflow page */
+  .table-responsive {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    border-radius: 8px;
+  }
+
+  table {
+    font-size: 0.8rem;
+  }
+
+  .table th, .table td {
+    padding: 0.4rem 0.5rem;
+    white-space: nowrap;
+  }
+
+  .table .notes-cell {
+    white-space: normal;
+    min-width: 140px;
+    max-width: 200px;
+  }
+
+  /* Reservation calendar remains a horizontal-scroll zone */
+  .table-responsive .reservation-cell {
+    min-width: 28px;
+  }
+
+  /* Modals: near-full-screen, bottom safe-area padding */
+  .modal-dialog {
+    margin: 0 !important;
+    max-width: 100vw !important;
+    min-height: 100vh;
+  }
+
+  .modal-content {
+    border-radius: 0;
+    min-height: 100vh;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .modal-header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 0.75rem 1rem;
+    background: #212529 !important;
+    color: #fff !important;
+    border-bottom: 0;
+  }
+
+  .modal-header .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+  }
+
+  .modal-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+  }
+
+  .modal-body {
+    padding: 1rem;
+  }
+
+  .modal-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    background: #fff;
+    box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.08);
+    padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
+    gap: 0.5rem;
+  }
+
+  .modal-footer .btn {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Phone number links directly tappable */
+  a[href^="tel:"] {
+    color: inherit;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* Reservation badges/icons more visible */
+  .reservation-bar {
+    font-size: 0.75rem;
+  }
+
+  .reservation-status-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Floating action button for quick "add" on mobile */
+  .btn-fab {
+    position: fixed;
+    right: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 1030;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+  }
+
+  /* Remove hover shadow artifacts on touch */
+  .btn:hover,
+  .card:hover,
+  .list-group-item:hover,
+  .reservation-bar:hover {
+    transform: none !important;
+  }
+}
+
+/* Hide mobile topbar on tablet/desktop */
+@media (min-width: 768px) {
+  #mobile-topbar,
+  #sidebar-backdrop {
+    display: none !important;
+  }
+}
+
+/* Slightly larger touch targets even on tablet */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .btn {
+    min-height: 40px;
+  }
+  .form-control, .form-select {
+    min-height: 40px;
+  }
+}
