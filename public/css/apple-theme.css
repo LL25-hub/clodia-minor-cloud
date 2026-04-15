@@ -460,27 +460,25 @@ input:focus, textarea:focus, select:focus {
   border: none !important;
 }
 
-/* Check-out half marker: shows that a guest is leaving on the morning of the cell day.
-   Painted on empty cells whose date equals a reservation's check_out_date. */
-#reservation-table td.cell-empty-with-checkout,
-td[data-date].cell-empty-with-checkout {
+/* Reservation bar extends by half a cell on each side so that it visually
+   covers the afternoon of the check-in day and the morning of the check-out day
+   (no visible gap between the bar and the surrounding cells). */
+#reservation-table td.reservation-cell,
+td.reservation-cell {
   position: relative;
+  overflow: visible !important;
   padding: 0 !important;
 }
-.cell-checkout-half {
-  position: absolute;
+
+#reservation-table .reservation-cell .reservation-bar,
+.reservation-cell .reservation-bar {
+  position: absolute !important;
   top: 1px;
   bottom: 1px;
-  left: 0;
-  width: 50%;
-  border-top-right-radius: 6px;
-  border-bottom-right-radius: 6px;
-  pointer-events: none;
-  box-shadow: 1px 0 0 rgba(0, 0, 0, 0.08);
+  left: calc(100% / var(--cols, 1) / 2) !important;
+  right: calc(-100% / var(--cols, 1) / 2) !important;
+  z-index: 2;
 }
-.cell-checkout-half.reservation-color-yellow { background: #ffd60a; }
-.cell-checkout-half.reservation-color-blue   { background: #0a84ff; }
-.cell-checkout-half.reservation-color-orange { background: #ff9500; }
 
 /* Force ALL text and icons inside any reservation bar to be black,
    overriding per-color inline styles in style.css */
@@ -495,12 +493,23 @@ td[data-date].cell-empty-with-checkout {
   color: #111 !important;
 }
 
-/* Reference (left) + price (right) inside reservation bars */
+/* Reservation bar: body grouped at center (ref + name + price stick together),
+   right icons pinned to the far right. */
 .reservation-bar {
   display: flex !important;
   align-items: center;
-  gap: 4px;
+  justify-content: space-between;
   padding: 0 6px;
+}
+
+.reservation-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  overflow: hidden;
 }
 
 .reservation-ref {
@@ -508,13 +517,13 @@ td[data-date].cell-empty-with-checkout {
   font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: -0.01em;
-  padding: 1px 5px;
+  padding: 1px 6px;
   border-radius: 4px;
   background: rgba(0, 0, 0, 0.12);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 70px;
+  max-width: 90px;
   line-height: 1.2;
 }
 
@@ -524,13 +533,11 @@ td[data-date].cell-empty-with-checkout {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
-  padding: 0 2px;
   letter-spacing: -0.01em;
 }
 
-/* Keep the center name clipped so left/right never overflow */
 .reservation-bar .reservation-center {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-width: 0;
   display: flex;
   align-items: center;
@@ -542,6 +549,14 @@ td[data-date].cell-empty-with-checkout {
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 100%;
+}
+
+.reservation-bar .reservation-right {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-left: 6px;
 }
 
 /* Icon chips: slightly darker translucent background so they stay visible
