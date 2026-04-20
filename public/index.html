@@ -65,6 +65,7 @@
     <script src="js/reservations-mobile.js" defer></script>
     <script src="js/people-stepper.js" defer></script>
     <script src="js/date-range-picker.js" defer></script>
+    <script src="js/overview.js" defer></script>
 </head>
 <body>
 <!-- Auth splash: shown until the guard verifies the session (prevents FOUC) -->
@@ -84,7 +85,7 @@
     <div class="border-end bg-dark text-white" id="sidebar-wrapper">
         <div class="sidebar-heading py-3 px-3 fs-5 fw-semibold border-bottom border-secondary" id="hotel-name-sidebar">Calendar</div>
         <div class="list-group list-group-flush">
-            <a class="list-group-item list-group-item-action bg-dark text-white p-3 active" data-section="dashboard" href="#"><i class="fas fa-tachometer-alt me-2"></i>Panoramica</a>
+            <a class="list-group-item list-group-item-action bg-dark text-white p-3 active" data-section="dashboard" href="#"><i class="fas fa-tachometer-alt me-2"></i>New</a>
             <a class="list-group-item list-group-item-action bg-dark text-white p-3" data-section="history" href="#"><i class="fas fa-history me-2"></i>Prenotazioni</a>
             <a class="list-group-item list-group-item-action bg-dark text-white p-3" data-section="reservations" href="#"><i class="fas fa-calendar-check me-2"></i>Registro</a>
             <a class="list-group-item list-group-item-action bg-dark text-white p-3" data-section="clients" href="#"><i class="fas fa-users me-2"></i>Clienti</a>
@@ -99,101 +100,155 @@
     <div id="page-content-wrapper" class="bg-light">
         <!-- Main Content -->
         <div class="container-fluid p-4">
-            <!-- Dashboard Section -->
+            <!-- Dashboard Section (New overview) -->
             <div class="section active" id="dashboard">
-                <div class="row">
-                    <div class="col-md-7">
-                        <div class="card mb-4">
-                            <div class="card-header bg-white">
-                                <h5 class="mb-0">Arrivi di questa settimana</h5>
+                <div class="overview-page">
+                    <!-- Header -->
+                    <header class="overview-header">
+                        <div>
+                            <h1 class="overview-title">New</h1>
+                            <p class="overview-subtitle" id="overview-subtitle">Caricamento…</p>
+                        </div>
+                        <div class="overview-today" id="overview-today"></div>
+                    </header>
+
+                    <!-- KPI cards -->
+                    <section class="kpi-grid">
+                        <div class="kpi-card kpi-card--accent">
+                            <div class="kpi-card__icon"><i class="fas fa-bed"></i></div>
+                            <div class="kpi-card__label">Occupazione oggi</div>
+                            <div class="kpi-card__value"><span id="kpi-occupancy-rate">—</span><span class="kpi-card__unit">%</span></div>
+                            <div class="kpi-card__sub"><span id="kpi-occupied">0</span> occupati · <span id="kpi-free">0</span> liberi</div>
+                            <div class="kpi-card__bar"><div class="kpi-card__bar-fill" id="kpi-occupancy-bar" style="width:0%"></div></div>
+                        </div>
+                        <div class="kpi-card kpi-card--info">
+                            <div class="kpi-card__icon"><i class="fas fa-plane-arrival"></i></div>
+                            <div class="kpi-card__label">Arrivi oggi</div>
+                            <div class="kpi-card__value" id="kpi-arrivals-today">0</div>
+                            <div class="kpi-card__sub">Prossimi 7 giorni: <strong id="kpi-arrivals-week">0</strong></div>
+                        </div>
+                        <div class="kpi-card kpi-card--warning">
+                            <div class="kpi-card__icon"><i class="fas fa-plane-departure"></i></div>
+                            <div class="kpi-card__label">Partenze oggi</div>
+                            <div class="kpi-card__value" id="kpi-departures-today">0</div>
+                            <div class="kpi-card__sub">Prossimi 7 giorni: <strong id="kpi-departures-week">0</strong></div>
+                        </div>
+                        <div class="kpi-card kpi-card--success">
+                            <div class="kpi-card__icon"><i class="fas fa-euro-sign"></i></div>
+                            <div class="kpi-card__label">Incassato anno</div>
+                            <div class="kpi-card__value">€<span id="kpi-earned">0</span></div>
+                            <div class="kpi-card__sub">Totale preventivato: <strong>€<span id="kpi-estimate">0</span></strong></div>
+                        </div>
+                        <div class="kpi-card kpi-card--danger">
+                            <div class="kpi-card__icon"><i class="fas fa-hand-holding-usd"></i></div>
+                            <div class="kpi-card__label">Da incassare</div>
+                            <div class="kpi-card__value">€<span id="kpi-pending">0</span></div>
+                            <div class="kpi-card__sub"><span id="kpi-pending-count">0</span> prenotazioni attive</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-card__icon"><i class="fas fa-calendar-check"></i></div>
+                            <div class="kpi-card__label">Future</div>
+                            <div class="kpi-card__value" id="kpi-future-count">0</div>
+                            <div class="kpi-card__sub">Prenotazioni in arrivo</div>
+                        </div>
+                    </section>
+
+                    <!-- Charts -->
+                    <section class="charts-grid">
+                        <div class="chart-card chart-card--wide">
+                            <div class="chart-card__header">
+                                <h3>Occupazione prossimi 30 giorni</h3>
+                                <span class="chart-card__hint">% di appartamenti occupati</span>
                             </div>
-                            <div class="card-body p-0">
-                                <ul class="list-group list-group-flush" id="check-in-list">
-                                    <li class="list-group-item d-flex justify-content-between align-items-center placeholder-glow">
-                                        <span class="placeholder col-6"></span>
-                                        <span class="placeholder col-2"></span>
-                                    </li>
-                                </ul>
+                            <div class="chart-card__body chart-card__body--tall">
+                                <canvas id="chart-occupancy-30d"></canvas>
                             </div>
                         </div>
-
-                        <div class="card">
-                            <div class="card-header bg-white">
-                                <h5 class="mb-0">Partenze di questa settimana</h5>
+                        <div class="chart-card">
+                            <div class="chart-card__header">
+                                <h3>Stato pagamenti</h3>
                             </div>
-                            <div class="card-body p-0">
-                                <ul class="list-group list-group-flush" id="check-out-list">
-                                    <li class="list-group-item d-flex justify-content-between align-items-center placeholder-glow">
-                                        <span class="placeholder col-6"></span>
-                                        <span class="placeholder col-2"></span>
-                                    </li>
-                                </ul>
+                            <div class="chart-card__body chart-card__body--square">
+                                <canvas id="chart-payments"></canvas>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="col-md-5">
-                        <div class="card h-100">
-                            <div class="card-header bg-white">
-                                <h5 class="mb-0">Occupazione Attuale</h5>
+                        <div class="chart-card chart-card--wide">
+                            <div class="chart-card__header">
+                                <h3>Prenotazioni per mese</h3>
+                                <span class="chart-card__hint">Anno in corso</span>
                             </div>
-                            <div class="card-body d-flex flex-column align-items-center justify-content-center">
-                                <div class="position-relative" style="width: 200px; height: 200px;">
-                                    <canvas id="occupancy-chart"></canvas>
-                                    <div class="position-absolute top-50 start-50 translate-middle text-center">
-                                        <div class="fs-5 fw-bold" id="occupancy-rate">65%</div>
-                                        <div class="small text-muted">Occupazione</div>
-                                    </div>
-                                </div>
-                                <div class="d-flex mt-3 gap-4">
-                                    <div class="d-flex align-items-center">
-                                        <span class="d-inline-block me-2 bg-success" style="width: 12px; height: 12px; border-radius: 3px;"></span>
-                                        <span id="free-rooms" class="small">Liberi (35%)</span>
-                                    </div>
-                                    <div class="d-flex align-items-center">
-                                        <span class="d-inline-block me-2 bg-danger" style="width: 12px; height: 12px; border-radius: 3px;"></span>
-                                        <span id="occupied-rooms" class="small">Occupati (65%)</span>
-                                    </div>
-                                </div>
+                            <div class="chart-card__body">
+                                <canvas id="chart-bookings-per-month"></canvas>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="row mt-4">
-                        <div class="col-12">
-                            <div class="card border-0 shadow-sm">
-                                <div class="card-header bg-white">
-                                    <h5 class="mb-0">Ricerca Appartamenti Disponibili</h5>
-                                </div>
-                                <div class="card-body">
-                                    <form id="available-apartments-form" class="row g-3 align-items-end">
-                                        <div class="col-12">
-                                            <label for="available-range" class="form-label">Periodo soggiorno</label>
-                                            <div class="date-range-trigger" id="date-range-trigger">
-                                                <i class="far fa-calendar-alt date-range-trigger__icon"></i>
-                                                <input type="text"
-                                                       class="form-control date-range-trigger__input"
-                                                       id="available-range"
-                                                       placeholder="Tocca per scegliere check-in e check-out"
-                                                       readonly
-                                                       required>
-                                            </div>
-                                            <!-- Hidden fields so existing JS continues to work -->
-                                            <input type="hidden" id="available-check-in">
-                                            <input type="hidden" id="available-check-out">
-                                        </div>
-                                    </form>
-
-                                    <div id="available-apartments-results" class="mt-4 d-none">
-                                        <h6 class="border-bottom pb-2 mb-3">Appartamenti disponibili dal <span id="result-check-in"></span> al <span id="result-check-out"></span></h6>
-                                        <div class="row" id="available-apartments-list">
-                                            <!-- I risultati verranno inseriti qui dinamicamente -->
-                                        </div>
-                                    </div>
-                                </div>
+                        <div class="chart-card">
+                            <div class="chart-card__header">
+                                <h3>Top appartamenti</h3>
+                                <span class="chart-card__hint">Per prenotazioni</span>
+                            </div>
+                            <div class="chart-card__body chart-card__body--square">
+                                <canvas id="chart-top-rooms"></canvas>
                             </div>
                         </div>
-                    </div>
+                    </section>
+
+                    <!-- Lists -->
+                    <section class="overview-lists">
+                        <div class="list-card">
+                            <div class="list-card__header">
+                                <h3><i class="fas fa-plane-arrival"></i> Prossimi arrivi</h3>
+                                <span class="list-card__count" id="list-checkins-count">0</span>
+                            </div>
+                            <ul class="list-card__items" id="list-upcoming-checkins"></ul>
+                        </div>
+                        <div class="list-card">
+                            <div class="list-card__header">
+                                <h3><i class="fas fa-plane-departure"></i> Prossime partenze</h3>
+                                <span class="list-card__count" id="list-checkouts-count">0</span>
+                            </div>
+                            <ul class="list-card__items" id="list-upcoming-checkouts"></ul>
+                        </div>
+                        <div class="list-card">
+                            <div class="list-card__header">
+                                <h3><i class="fas fa-hand-holding-usd"></i> Da incassare</h3>
+                                <span class="list-card__count" id="list-pending-count">0</span>
+                            </div>
+                            <ul class="list-card__items" id="list-pending-payments"></ul>
+                        </div>
+                    </section>
+
+                    <!-- Availability search -->
+                    <section class="card border-0 shadow-sm overview-search">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">Ricerca Appartamenti Disponibili</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="available-apartments-form" class="row g-3 align-items-end">
+                                <div class="col-12">
+                                    <label for="available-range" class="form-label">Periodo soggiorno</label>
+                                    <div class="date-range-trigger" id="date-range-trigger">
+                                        <i class="far fa-calendar-alt date-range-trigger__icon"></i>
+                                        <input type="text" class="form-control date-range-trigger__input" id="available-range"
+                                               placeholder="Tocca per scegliere check-in e check-out" readonly required>
+                                    </div>
+                                    <input type="hidden" id="available-check-in">
+                                    <input type="hidden" id="available-check-out">
+                                </div>
+                            </form>
+                            <div id="available-apartments-results" class="mt-4 d-none">
+                                <h6 class="border-bottom pb-2 mb-3">Appartamenti disponibili dal <span id="result-check-in"></span> al <span id="result-check-out"></span></h6>
+                                <div class="row" id="available-apartments-list"></div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Legacy hidden lists kept for back-compat with existing JS listeners -->
+                    <ul id="check-in-list" hidden aria-hidden="true"></ul>
+                    <ul id="check-out-list" hidden aria-hidden="true"></ul>
+                    <canvas id="occupancy-chart" hidden aria-hidden="true"></canvas>
+                    <span id="occupancy-rate" hidden aria-hidden="true"></span>
+                    <span id="free-rooms" hidden aria-hidden="true"></span>
+                    <span id="occupied-rooms" hidden aria-hidden="true"></span>
                 </div>
             </div>
 
