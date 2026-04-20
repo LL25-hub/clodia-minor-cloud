@@ -390,15 +390,16 @@
                         <button class="btn btn-sm btn-outline-secondary" id="beach-next-month" aria-label="Mese successivo">
                             <i class="fas fa-chevron-right"></i>
                         </button>
-                        <div class="btn-group">
-                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-print me-1"></i> Stampa
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item print-btn" href="#" data-print-section="beach" data-print-mode="1"><i class="fas fa-file-alt me-2"></i>1 mese (pagina piena)</a></li>
-                                <li><a class="dropdown-item print-btn" href="#" data-print-section="beach" data-print-mode="2"><i class="fas fa-copy me-2"></i>2 mesi (corrente + successivo)</a></li>
-                            </ul>
-                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-secondary print-btn"
+                                data-print-section="beach" data-print-mode="1"
+                                title="Stampa il mese corrente a pagina piena">
+                            <i class="fas fa-print me-1"></i> 1 mese
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary print-btn"
+                                data-print-section="beach" data-print-mode="2"
+                                title="Stampa mese corrente + mese successivo nella stessa pagina">
+                            <i class="fas fa-print me-1"></i> 2 mesi
+                        </button>
                     </div>
                 </div>
 
