@@ -2266,15 +2266,27 @@ canvas { background: transparent; }
     height: 100vh !important;
     overflow: hidden !important;
   }
-  body[data-print-target="beach"] .section.active { display: none !important; }
+  /* Hide everything else so the flow only produces the single 2-month page */
+  body[data-print-target="beach"] #wrapper,
+  body[data-print-target="beach"] #page-content-wrapper,
+  body[data-print-target="beach"] .container-fluid,
+  body[data-print-target="beach"] .section,
+  body[data-print-target="beach"] .section.active {
+    display: none !important;
+  }
   body[data-print-target="beach"] #print-beach-months {
     display: flex !important;
     flex-direction: column;
     gap: 3mm;
+    position: fixed !important;
+    top: 0; left: 0;
+    width: 100vw;
     height: 100vh;
-    max-height: 100vh;
-    overflow: hidden;
+    padding: 4mm;
+    background: #fff;
     box-sizing: border-box;
+    overflow: hidden !important;
+    z-index: 99999;
     page-break-after: avoid !important;
     break-after: avoid !important;
     page-break-inside: avoid !important;
