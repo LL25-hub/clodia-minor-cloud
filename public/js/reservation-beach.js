@@ -11,6 +11,10 @@
  */
 (function () {
   let umbrellaList = null;
+  // Id of the reservation currently being edited (captured from openReservationModal).
+  // currentReservationId in app.js is a lexical top-level let and is NOT reachable
+  // via window, so we track it here ourselves.
+  let editingReservationId = null;
 
   function $(id) { return document.getElementById(id); }
 
@@ -118,6 +122,9 @@
     const orig = window.openReservationModal;
     if (typeof orig !== 'function') return setTimeout(installOpenWrapper, 100);
     window.openReservationModal = async function (reservationId) {
+      // Remember the id so the save hook can sync the beach assignment
+      editingReservationId = reservationId || null;
+
       // Reset beach fields
       const cb = $('has-beach');
       const block = $('beach-assign-block');
@@ -168,9 +175,9 @@
     if (typeof originalSave !== 'function') return setTimeout(installSaveHook, 100);
 
     window.saveReservation = async function () {
-      // The real source of truth is the global currentReservationId set by
-      // openReservationModal(). #reservation-id is never populated.
-      const editingId = window.currentReservationId || null;
+      // Use the id we captured when the modal was opened (app.js keeps
+      // currentReservationId as a lexical let that's not accessible via window).
+      const editingId = editingReservationId || null;
 
       // Snapshot beach form BEFORE the original save hides the modal / resets
       const cb = $('has-beach');
@@ -213,12 +220,20 @@
         if (payload.umbrella_id || !beachSnapshot.enabled) {
           await window.api.beach.assignments.sync(payload);
           document.dispatchEvent(new CustomEvent('beach-data-invalidated'));
+          if (window.uiUtils && window.uiUtils.showToast) {
+            window.uiUtils.showToast(
+              payload.umbrella_id ? 'Ombrellone assegnato con successo' : 'Ombrellone rimosso dalla prenotazione',
+              'success'
+            );
+          }
         }
       } catch (err) {
         console.error('Beach sync failed:', err);
         if (window.uiUtils && window.uiUtils.showToast) {
           window.uiUtils.showToast('Errore durante il salvataggio dell\'ombrellone: ' + (err.message || err), 'danger');
         }
+      } finally {
+        editingReservationId = null;
       }
       return result;
     };
