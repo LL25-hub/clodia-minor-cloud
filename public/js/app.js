@@ -273,6 +273,8 @@ function initNavigation() {
             if (shouldReload('add-rooms')) { loadRooms(); markLoaded('add-rooms'); }
           } else if (targetSection === 'trash') {
             if (shouldReload('trash')) { loadTrash(); markLoaded('trash'); }
+          } else if (targetSection === 'beach') {
+            if (typeof window.loadBeach === 'function') window.loadBeach();
           }
         }
       });

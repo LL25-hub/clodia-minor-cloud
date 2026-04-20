@@ -353,10 +353,33 @@ const settingsAPI = {
   }
 };
 
+// Beach (umbrellas + assignments)
+const beachAPI = {
+  umbrellas: {
+    getAll() { return apiRequest('/beach/umbrellas'); },
+    create(data) { return apiRequest('/beach/umbrellas', { method: 'POST', body: JSON.stringify(data) }); },
+    update(id, data) { return apiRequest('/beach/umbrellas/' + id, { method: 'PUT', body: JSON.stringify(data) }); },
+    delete(id) { return apiRequest('/beach/umbrellas/' + id, { method: 'DELETE' }); }
+  },
+  assignments: {
+    list(params) {
+      const q = new URLSearchParams();
+      if (params) Object.keys(params).forEach(k => { if (params[k] != null) q.set(k, params[k]); });
+      const s = q.toString();
+      return apiRequest('/beach/assignments' + (s ? ('?' + s) : ''));
+    },
+    create(data) { return apiRequest('/beach/assignments', { method: 'POST', body: JSON.stringify(data) }); },
+    update(id, data) { return apiRequest('/beach/assignments/' + id, { method: 'PUT', body: JSON.stringify(data) }); },
+    delete(id) { return apiRequest('/beach/assignments/' + id, { method: 'DELETE' }); },
+    sync(data) { return apiRequest('/beach/assignments/sync', { method: 'POST', body: JSON.stringify(data) }); }
+  }
+};
+
 // Esporta oggetti API
 window.api = {
   rooms: roomsAPI,
   clients: clientsAPI,
   reservations: reservationsAPI,
-  settings: settingsAPI
+  settings: settingsAPI,
+  beach: beachAPI
 };

@@ -9,6 +9,8 @@
     { "source": "/reservations/:path*", "destination": "/api/index" },
     { "source": "/settings", "destination": "/api/index" },
     { "source": "/settings/:path*", "destination": "/api/index" },
+    { "source": "/beach", "destination": "/api/index" },
+    { "source": "/beach/:path*", "destination": "/api/index" },
     { "source": "/dashboard", "destination": "/api/index" },
     { "source": "/export", "destination": "/api/index" },
     { "source": "/import", "destination": "/api/index" },

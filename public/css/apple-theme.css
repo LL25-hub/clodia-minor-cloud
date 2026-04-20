@@ -989,6 +989,187 @@ canvas { background: transparent; }
 }
 
 /* ===========================================================
+   Beach (Spiaggia) section
+   =========================================================== */
+.beach-page { display: flex; flex-direction: column; gap: 18px; }
+.beach-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.beach-title {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.022em;
+}
+.beach-subtitle {
+  margin: 4px 0 0;
+  color: var(--ap-text-secondary);
+  font-size: 0.95rem;
+}
+.beach-datepicker {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.beach-datepicker input {
+  min-width: 180px;
+  border-radius: 10px !important;
+}
+.beach-legend {
+  display: flex;
+  gap: 16px;
+  font-size: 0.82rem;
+  color: var(--ap-text-secondary);
+}
+.beach-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.beach-dot--free { background: #e5e5ea; }
+.beach-dot--busy { background: #0a84ff; }
+
+.beach-grid {
+  background: var(--ap-surface);
+  border: 1px solid var(--ap-separator);
+  border-radius: var(--ap-radius-lg);
+  padding: 16px;
+  box-shadow: var(--ap-shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-x: auto;
+}
+.beach-row {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  align-items: center;
+  gap: 12px;
+}
+.beach-row__label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ap-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.beach-row__cells {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.beach-cell {
+  width: 72px;
+  height: 72px;
+  border-radius: 12px;
+  border: 1px solid var(--ap-separator);
+  background: #f2f2f4;
+  color: #86868b;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+  font-size: 1.2rem;
+  padding: 0;
+}
+.beach-cell:hover { transform: translateY(-1px); box-shadow: var(--ap-shadow-sm); }
+.beach-cell__code {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.beach-cell--busy {
+  background: linear-gradient(135deg, #0a84ff 0%, #5ac8fa 100%);
+  border-color: transparent;
+  color: #fff;
+}
+.beach-cell--busy:hover { box-shadow: 0 4px 12px rgba(10, 132, 255, 0.35); }
+.beach-cell--free { background: #fff; border-color: var(--ap-separator-strong); color: var(--ap-text-secondary); }
+
+.beach-details {
+  background: var(--ap-surface);
+  border: 1px solid var(--ap-separator);
+  border-radius: var(--ap-radius);
+  padding: 16px 18px;
+  box-shadow: var(--ap-shadow-sm);
+}
+.beach-details__title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.beach-details__title i { color: #0a84ff; margin-right: 6px; }
+.beach-details__status { font-weight: 600; margin-bottom: 6px; }
+.beach-details__status--free { color: #1c7a3a; }
+.beach-details__status--busy { color: var(--ap-text-secondary); }
+.beach-details__client, .beach-details__stay { color: var(--ap-text-secondary); font-size: 0.9rem; margin-bottom: 2px; }
+
+@media (max-width: 767.98px) {
+  .beach-row { grid-template-columns: 70px 1fr; }
+  .beach-cell { width: 60px; height: 60px; font-size: 1rem; }
+}
+
+/* ===========================================================
+   Modal loading overlay (shown while fetching a reservation)
+   =========================================================== */
+.modal-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.55);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
+  backdrop-filter: blur(10px) saturate(140%);
+  border-radius: inherit;
+}
+.modal-loading__spinner {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 3px solid rgba(0, 0, 0, 0.1);
+  border-top-color: var(--ap-accent);
+  animation: modal-loading-spin 0.8s linear infinite;
+}
+.modal-loading__label {
+  color: var(--ap-text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+@keyframes modal-loading-spin { to { transform: rotate(360deg); } }
+
+/* ===========================================================
+   Reservation form: beach assignment block
+   =========================================================== */
+.beach-assign__card {
+  background: linear-gradient(135deg, rgba(10,132,255,0.04), rgba(90,200,250,0.04));
+  border: 1px solid rgba(10,132,255,0.18);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+.beach-assign__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: #0a84ff;
+}
+.beach-assign__header h6 { color: var(--ap-text); font-weight: 600; }
+
+/* ===========================================================
    Overview ("New") dashboard
    =========================================================== */
 .overview-page {
