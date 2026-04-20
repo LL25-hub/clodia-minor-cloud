@@ -989,7 +989,58 @@ canvas { background: transparent; }
 }
 
 /* ===========================================================
-   Beach (Spiaggia) section
+   Beach (Spiaggia) — monthly calendar (reuses Registro styles)
+   =========================================================== */
+#beach-table td.reservation-cell,
+#beach-table td[data-date] {
+  position: relative;
+  overflow: visible !important;
+  padding: 0 !important;
+}
+#beach-table td.reservation-cell {
+  background: transparent !important;
+}
+#beach-table .reservation-cell .reservation-bar {
+  position: absolute !important;
+  top: 1px;
+  bottom: 1px;
+  left: calc(100% / var(--cols, 1) / 2) !important;
+  right: calc(-100% / var(--cols, 1) / 2) !important;
+  z-index: 2;
+}
+#beach-table .date-header {
+  padding: 4px 2px !important;
+  vertical-align: middle;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  text-align: center;
+  background-color: var(--ap-surface) !important;
+  border-bottom: 1px solid var(--ap-separator);
+}
+#beach-table .date-header.saturday-column {
+  background-color: #c7c7cc !important;
+  color: var(--ap-text);
+}
+#beach-table tbody tr td.saturday-column {
+  background-color: #d7d7dc !important;
+}
+#beach-table .room-cell {
+  background-color: var(--ap-surface) !important;
+  border-right: 1px solid var(--ap-separator-strong) !important;
+  color: var(--ap-text);
+  font-weight: 500;
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  width: 70px !important;
+  max-width: 70px !important;
+  min-width: 70px;
+  text-align: center;
+  padding: 0.3rem 0.3rem !important;
+}
+
+/* ===========================================================
+   Legacy beach grid (kept for compatibility if needed)
    =========================================================== */
 .beach-page { display: flex; flex-direction: column; gap: 18px; }
 .beach-header {

@@ -1,163 +1,258 @@
-/* Spiaggia section: umbrella grid with date picker and occupancy. */
+/* Spiaggia: monthly calendar view styled like the Registro.
+ *   - rows = umbrellas
+ *   - columns = days of the current month
+ *   - bars = beach assignments spanning one or more days
+ *   - click on a bar -> opens the linked reservation
+ */
 (function () {
-  let umbrellasCache = null;
+  const state = {
+    year: null,
+    month: null,    // 0-based
+    umbrellas: [],
+    assignments: [],
+  };
 
-  function todayISO() {
-    const d = new Date();
-    const pad = n => String(n).padStart(2, '0');
-    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  function $(id) { return document.getElementById(id); }
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function iso(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function parseDate(s) { if (!s) return null; const d = new Date(s + 'T00:00:00'); return isNaN(d.getTime()) ? null : d; }
+
+  function monthDates(year, month) {
+    const days = new Date(year, month + 1, 0).getDate();
+    const out = [];
+    for (let i = 1; i <= days; i++) out.push(iso(new Date(year, month, i)));
+    return out;
+  }
+
+  function monthName(month) {
+    return new Date(2000, month, 1).toLocaleDateString('it-IT', { month: 'long' });
+  }
+
+  function dayAbbr(date) {
+    return date.toLocaleDateString('it-IT', { weekday: 'short' }).replace('.', '').toUpperCase();
   }
 
   function groupByRow(umbrellas) {
-    const map = new Map();
+    const out = new Map();
     umbrellas.forEach(u => {
       const key = u.row_label || 'Fila';
-      if (!map.has(key)) map.set(key, []);
-      map.get(key).push(u);
+      if (!out.has(key)) out.set(key, []);
+      out.get(key).push(u);
     });
-    for (const list of map.values()) list.sort((a, b) => (a.position || 0) - (b.position || 0) || a.code.localeCompare(b.code));
-    return map;
+    for (const arr of out.values()) {
+      arr.sort((a, b) => (a.position || 0) - (b.position || 0) || a.code.localeCompare(b.code));
+    }
+    return out;
   }
 
-  async function loadUmbrellas() {
-    if (umbrellasCache) return umbrellasCache;
-    umbrellasCache = await window.api.beach.umbrellas.getAll();
-    return umbrellasCache;
-  }
+  function firstDayOf(year, month) { return iso(new Date(year, month, 1)); }
+  function lastDayOf(year, month) { return iso(new Date(year, month + 1, 0)); }
 
-  function formatDateLong(iso) {
-    const d = new Date(iso + 'T00:00:00');
-    return d.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-  }
-
-  async function render() {
-    const dateInput = document.getElementById('beach-date');
-    if (!dateInput.value) dateInput.value = todayISO();
-    const date = dateInput.value;
-
-    const [umbrellas, assignments] = await Promise.all([
-      loadUmbrellas(),
-      window.api.beach.assignments.list({ date })
-    ]);
-
-    const occupied = new Map();
-    (assignments || []).forEach(a => {
-      occupied.set(a.umbrella_id, a);
+  async function loadMonth() {
+    const monthStart = firstDayOf(state.year, state.month);
+    const monthEnd = lastDayOf(state.year, state.month);
+    if (!state.umbrellas.length) {
+      state.umbrellas = await window.api.beach.umbrellas.getAll();
+    }
+    state.assignments = await window.api.beach.assignments.list({
+      from: monthStart, to: monthEnd
     });
-
-    const total = umbrellas.length;
-    const busy = (assignments || []).length;
-    const free = total - busy;
-
-    const subtitleEl = document.getElementById('beach-subtitle');
-    if (subtitleEl) {
-      subtitleEl.textContent =
-        formatDateLong(date) + ' · ' + busy + '/' + total + ' occupati · ' + free + ' liberi';
-      subtitleEl.style.textTransform = 'capitalize';
-    }
-
-    const grid = document.getElementById('beach-grid');
-    grid.innerHTML = '';
-    const groups = groupByRow(umbrellas);
-    for (const [row, list] of groups) {
-      const rowEl = document.createElement('div');
-      rowEl.className = 'beach-row';
-      const label = document.createElement('div');
-      label.className = 'beach-row__label';
-      label.textContent = row;
-      rowEl.appendChild(label);
-      const cells = document.createElement('div');
-      cells.className = 'beach-row__cells';
-      list.forEach(u => {
-        const ass = occupied.get(u.id);
-        const cell = document.createElement('button');
-        cell.type = 'button';
-        cell.className = 'beach-cell' + (ass ? ' beach-cell--busy' : ' beach-cell--free');
-        cell.dataset.umbrellaId = u.id;
-        cell.title = u.code + (ass ? ' · occupato' : ' · libero');
-        cell.innerHTML = '<i class="fas fa-umbrella-beach"></i><span class="beach-cell__code">' + u.code + '</span>';
-        cell.addEventListener('click', function () {
-          showDetails(u, ass);
-        });
-        cells.appendChild(cell);
-      });
-      rowEl.appendChild(cells);
-      grid.appendChild(rowEl);
-    }
-
-    hideDetails();
-  }
-
-  function showDetails(umbrella, assignment) {
-    const el = document.getElementById('beach-details');
-    if (!el) return;
-    el.hidden = false;
-    el.innerHTML = '';
-    const title = document.createElement('div');
-    title.className = 'beach-details__title';
-    title.innerHTML = '<i class="fas fa-umbrella-beach"></i> Ombrellone <strong>' + umbrella.code + '</strong>' +
-      (umbrella.row_label ? ' · ' + umbrella.row_label : '');
-    el.appendChild(title);
-
-    if (!assignment) {
-      const free = document.createElement('div');
-      free.className = 'beach-details__status beach-details__status--free';
-      free.textContent = 'Libero in questa data';
-      el.appendChild(free);
-      return;
-    }
-    const r = assignment.reservation;
-    const clientName = r && r.client ? r.client.name : 'Cliente';
-    const clientPhone = r && r.client ? r.client.phone : null;
-
-    const busy = document.createElement('div');
-    busy.className = 'beach-details__status beach-details__status--busy';
-    busy.textContent = 'Occupato · dal ' + assignment.start_date + ' al ' + assignment.end_date;
-    el.appendChild(busy);
-
-    const who = document.createElement('div');
-    who.className = 'beach-details__client';
-    who.innerHTML = '<strong></strong>' + (clientPhone ? ' · <a href="tel:' + String(clientPhone).replace(/[^0-9+]/g, '') + '">' + clientPhone + '</a>' : '');
-    who.querySelector('strong').textContent = clientName;
-    el.appendChild(who);
-
-    if (r && r.check_in_date) {
-      const stay = document.createElement('div');
-      stay.className = 'beach-details__stay';
-      stay.textContent = 'Soggiorno: ' + r.check_in_date + ' → ' + r.check_out_date;
-      el.appendChild(stay);
-    }
-
-    const openBtn = document.createElement('button');
-    openBtn.type = 'button';
-    openBtn.className = 'btn btn-sm btn-outline-primary mt-2';
-    openBtn.innerHTML = '<i class="fas fa-external-link-alt me-1"></i> Apri prenotazione';
-    openBtn.addEventListener('click', function () {
-      if (r && r.id && typeof window.editReservation === 'function') window.editReservation(r.id);
-    });
-    el.appendChild(openBtn);
-  }
-
-  function hideDetails() {
-    const el = document.getElementById('beach-details');
-    if (el) { el.hidden = true; el.innerHTML = ''; }
-  }
-
-  // Exposed so the navigation handler can call it
-  window.loadBeach = function () {
-    const dateInput = document.getElementById('beach-date');
-    if (dateInput && !dateInput.value) dateInput.value = todayISO();
     render();
+  }
+
+  function renderHeader(dates) {
+    const header = $('beach-days-header');
+    if (!header) return;
+    // Wipe all day cells except the first ("Ombr.")
+    header.querySelectorAll('th:not(.room-cell)').forEach(el => el.remove());
+
+    const todayStr = iso(new Date());
+    dates.forEach(d => {
+      const dd = new Date(d + 'T00:00:00');
+      const th = document.createElement('th');
+      th.className = 'date-header';
+      if (dd.getDay() === 6) th.classList.add('saturday-column');
+      if (d === todayStr) th.classList.add('today-header');
+      th.innerHTML = '<div class="day-number">' + dd.getDate() + '</div><div class="day-abbr">' + dayAbbr(dd) + '</div>';
+      header.appendChild(th);
+    });
+  }
+
+  function buildBar(assignment, colSpan) {
+    const r = assignment.reservation || {};
+    const client = (r.client && r.client.name) || 'Cliente';
+    const color = r.reservation_color || 'yellow';
+
+    const bar = document.createElement('div');
+    bar.className = 'reservation-bar reservation-color-' + color;
+    bar.dataset.reservationId = r.id || '';
+    bar.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (r.id && typeof window.editReservation === 'function') window.editReservation(r.id);
+    });
+
+    const body = document.createElement('div');
+    body.className = 'reservation-body';
+    const center = document.createElement('div');
+    center.className = 'reservation-center';
+    const name = document.createElement('div');
+    name.className = 'reservation-client-name';
+    name.textContent = client;
+    center.appendChild(name);
+    body.appendChild(center);
+    bar.appendChild(body);
+    return bar;
+  }
+
+  function renderRows(dates) {
+    const tbody = $('beach-rows');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    const groups = groupByRow(state.umbrellas);
+
+    for (const [rowLabel, list] of groups) {
+      // Row header
+      const header = document.createElement('tr');
+      header.className = 'floor-header';
+      const th = document.createElement('td');
+      th.colSpan = dates.length + 1;
+      th.textContent = rowLabel;
+      th.style.padding = '4px 8px';
+      th.style.fontSize = '0.85rem';
+      header.appendChild(th);
+      tbody.appendChild(header);
+
+      list.forEach(um => {
+        const row = document.createElement('tr');
+
+        const codeCell = document.createElement('td');
+        codeCell.className = 'room-cell';
+        codeCell.innerHTML = '<div class="room-number">' + um.code + '</div>';
+        row.appendChild(codeCell);
+
+        // Flag each day with the active assignment, if any
+        const cellAssignments = new Array(dates.length).fill(null);
+        state.assignments.forEach(a => {
+          if (a.umbrella_id !== um.id) return;
+          const start = a.start_date;
+          const end = a.end_date;
+          for (let i = 0; i < dates.length; i++) {
+            if (dates[i] >= start && dates[i] <= end) cellAssignments[i] = a;
+          }
+        });
+
+        // Emit cells, merging consecutive days of the same assignment
+        let current = null;
+        let startIdx = -1;
+        for (let i = 0; i <= cellAssignments.length; i++) {
+          const same = i < cellAssignments.length && cellAssignments[i] && current && cellAssignments[i].id === current.id;
+          if (same) continue;
+
+          if (current) {
+            const endIdx = i - 1;
+            const colSpan = endIdx - startIdx + 1;
+            const td = document.createElement('td');
+            td.colSpan = colSpan;
+            td.className = 'reservation-cell';
+            td.style.setProperty('--cols', colSpan);
+
+            // Saturday stripes behind the bar
+            const satIdxs = [];
+            for (let k = 0; k < colSpan; k++) {
+              const dd = new Date(dates[startIdx + k] + 'T00:00:00');
+              if (dd.getDay() === 6) satIdxs.push(k);
+            }
+            if (satIdxs.length) {
+              td.classList.add('includes-saturday');
+              const stripes = document.createElement('div');
+              stripes.className = 'reservation-bg-stripes';
+              stripes.setAttribute('aria-hidden', 'true');
+              const pctW = 100 / colSpan;
+              satIdxs.forEach(k => {
+                const s = document.createElement('div');
+                s.className = 'reservation-bg-stripe';
+                s.style.left = (k * pctW) + '%';
+                s.style.width = pctW + '%';
+                stripes.appendChild(s);
+              });
+              td.appendChild(stripes);
+            }
+
+            td.appendChild(buildBar(current, colSpan));
+            row.appendChild(td);
+          }
+
+          if (i === cellAssignments.length) break;
+
+          if (cellAssignments[i]) {
+            current = cellAssignments[i];
+            startIdx = i;
+          } else {
+            const cell = document.createElement('td');
+            cell.dataset.date = dates[i];
+            cell.dataset.umbrellaId = um.id;
+            const dd = new Date(dates[i] + 'T00:00:00');
+            if (dd.getDay() === 6) cell.classList.add('saturday-column');
+            row.appendChild(cell);
+            current = null;
+          }
+        }
+
+        tbody.appendChild(row);
+      });
+    }
+  }
+
+  function render() {
+    const dates = monthDates(state.year, state.month);
+    const label = $('beach-month-display');
+    if (label) label.textContent = monthName(state.month).charAt(0).toUpperCase() + monthName(state.month).slice(1) + ' ' + state.year;
+    renderHeader(dates);
+    renderRows(dates);
+  }
+
+  function goToMonth(year, month) {
+    if (month < 0) { month = 11; year -= 1; }
+    else if (month > 11) { month = 0; year += 1; }
+    state.year = year;
+    state.month = month;
+    loadMonth().catch(e => console.error('Beach load error:', e));
+  }
+
+  function goToday() {
+    const d = new Date();
+    goToMonth(d.getFullYear(), d.getMonth());
+  }
+
+  // Public entry point used by the navigation handler
+  window.loadBeach = async function () {
+    if (state.year == null) {
+      const d = new Date();
+      state.year = d.getFullYear();
+      state.month = d.getMonth();
+    }
+    try {
+      await loadMonth();
+    } catch (err) {
+      console.error('Beach load error:', err);
+    }
   };
 
   document.addEventListener('DOMContentLoaded', function () {
-    const dateInput = document.getElementById('beach-date');
-    if (dateInput) {
-      dateInput.value = todayISO();
-      dateInput.addEventListener('change', render);
-    }
-    // Initial render if section is visible at load (it's not by default)
-    const section = document.getElementById('beach');
-    if (section && section.classList.contains('active')) render();
+    const prev = $('beach-prev-month');
+    const next = $('beach-next-month');
+    const today = $('beach-today-btn');
+    if (prev) prev.addEventListener('click', () => goToMonth(state.year, state.month - 1));
+    if (next) next.addEventListener('click', () => goToMonth(state.year, state.month + 1));
+    if (today) today.addEventListener('click', () => goToday());
+
+    // Refresh when a reservation is saved (cache invalidation signal)
+    document.addEventListener('beach-data-invalidated', function () {
+      state.assignments = [];
+      state.umbrellas = [];
+      if (state.year != null) loadMonth();
+    });
   });
 })();

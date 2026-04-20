@@ -183,6 +183,7 @@
           end_date: cb.checked && e && e.value ? e.value : null
         };
         await window.api.beach.assignments.sync(payload);
+        document.dispatchEvent(new CustomEvent('beach-data-invalidated'));
       } catch (err) {
         console.error('Beach sync failed:', err);
       }
