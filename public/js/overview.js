@@ -135,11 +135,28 @@
       .filter(r => { const co = parseDate(r.check_out_date); return co && co >= today && co <= weekEnd; })
       .sort((a, b) => parseDate(a.check_out_date) - parseDate(b.check_out_date));
 
+    // Active / future reservations with a residual balance
+    const pending = reservations
+      .map(r => {
+        const est = parseFloat(r.estimate_amount) || 0;
+        const paid = (parseFloat(r.cash_amount) || 0) + (parseFloat(r.transfer_amount) || 0);
+        return { r, diff: est - paid };
+      })
+      .filter(x => {
+        if (x.diff <= 0.01) return false;
+        const co = parseDate(x.r.check_out_date);
+        return co && co > today; // only include not-yet-past stays
+      })
+      .sort((a, b) => parseDate(a.r.check_in_date) - parseDate(b.r.check_in_date))
+      .slice(0, 12);
+
     renderReservationList('list-upcoming-checkins', upcomingCheckins, 'check_in_date');
     renderReservationList('list-upcoming-checkouts', upcomingCheckouts, 'check_out_date');
+    renderPendingList('list-pending-payments', pending);
 
     setText('list-checkins-count', upcomingCheckins.length);
     setText('list-checkouts-count', upcomingCheckouts.length);
+    setText('list-pending-count', pending.length);
   }
 
   function listItem() {
