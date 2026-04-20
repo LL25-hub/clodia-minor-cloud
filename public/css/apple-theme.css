@@ -2229,4 +2229,103 @@ canvas { background: transparent; }
 
   /* Hide the hidden lists/legacy elements */
   [hidden], [aria-hidden="true"] { display: none !important; }
+
+  /* ---- Spiaggia: stampa due mesi, uno sopra l'altro ---- */
+  /* Default hide: the print container only exists during print */
+  #print-beach-months { display: none; }
+
+  body[data-print-target="beach"] .section.active { display: none !important; }
+  body[data-print-target="beach"] #print-beach-months {
+    display: flex !important;
+    flex-direction: column;
+    gap: 4mm;
+    height: 100vh;
+    box-sizing: border-box;
+  }
+  body[data-print-target="beach"] .print-month-block {
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  body[data-print-target="beach"] .print-month-block__title {
+    flex: 0 0 auto;
+    font-size: 12pt;
+    font-weight: 700;
+    text-align: center;
+    margin: 0 0 2mm 0;
+    text-transform: capitalize;
+    color: #000;
+  }
+  body[data-print-target="beach"] .print-beach-table {
+    flex: 1 1 auto;
+    width: 100% !important;
+    height: 100% !important;
+    border-collapse: collapse !important;
+    table-layout: fixed !important;
+    font-size: 7pt;
+    margin: 0 !important;
+  }
+  body[data-print-target="beach"] .print-beach-table th,
+  body[data-print-target="beach"] .print-beach-table td {
+    padding: 1px 2px !important;
+    border: 1px solid #bbb !important;
+    height: auto;
+  }
+  body[data-print-target="beach"] .print-beach-table tbody { height: 100%; }
+  body[data-print-target="beach"] .print-beach-table .date-header {
+    font-size: 6.5pt !important;
+    padding: 1px 0 !important;
+  }
+  body[data-print-target="beach"] .print-beach-table .day-number {
+    font-size: 7pt !important;
+    line-height: 1;
+    font-weight: 700;
+  }
+  body[data-print-target="beach"] .print-beach-table .day-abbr {
+    font-size: 5.5pt !important;
+    line-height: 1;
+  }
+  body[data-print-target="beach"] .print-beach-table .room-cell {
+    width: 40px !important;
+    max-width: 40px !important;
+    min-width: 40px !important;
+    font-size: 7pt !important;
+  }
+  body[data-print-target="beach"] .print-beach-table .floor-header td {
+    font-size: 7pt !important;
+    background: #e8e8ed !important;
+    padding: 2px 6px !important;
+  }
+  body[data-print-target="beach"] .print-beach-table .saturday-column {
+    background: #d7d7dc !important;
+  }
+  body[data-print-target="beach"] .print-beach-table .reservation-cell {
+    position: relative;
+    background: transparent !important;
+    padding: 0 !important;
+  }
+  body[data-print-target="beach"] .print-beach-table .reservation-bar {
+    position: absolute;
+    top: 1px; bottom: 1px;
+    left: calc(100% / var(--cols, 1) / 2);
+    right: calc(-100% / var(--cols, 1) / 2);
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 2pt;
+    font-size: 6.5pt;
+    font-weight: 600;
+    padding: 0 3pt;
+  }
+  body[data-print-target="beach"] .print-beach-table .reservation-client-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+  body[data-print-target="beach"] .print-beach-table .reservation-bar.reservation-color-yellow { background: #ffd60a !important; color: #111 !important; }
+  body[data-print-target="beach"] .print-beach-table .reservation-bar.reservation-color-blue   { background: #0a84ff !important; color: #fff !important; }
+  body[data-print-target="beach"] .print-beach-table .reservation-bar.reservation-color-orange { background: #ff9500 !important; color: #111 !important; }
 }

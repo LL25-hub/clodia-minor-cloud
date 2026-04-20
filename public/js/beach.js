@@ -324,6 +324,118 @@
     goToMonth(d.getFullYear(), d.getMonth());
   }
 
+  // Build a self-contained month table block (used by the print flow to
+  // render two months stacked on a single page).
+  async function buildMonthBlock(year, month) {
+    if (!state.umbrellas.length) state.umbrellas = await window.api.beach.umbrellas.getAll();
+    const monthStart = firstDayOf(year, month);
+    const monthEnd = lastDayOf(year, month);
+    const assignments = await window.api.beach.assignments.list({ from: monthStart, to: monthEnd });
+
+    const dates = monthDates(year, month);
+
+    const wrap = document.createElement('div');
+    wrap.className = 'print-month-block';
+
+    const title = document.createElement('div');
+    title.className = 'print-month-block__title';
+    title.textContent = monthName(month).charAt(0).toUpperCase() + monthName(month).slice(1) + ' ' + year;
+    wrap.appendChild(title);
+
+    const table = document.createElement('table');
+    table.className = 'table table-sm align-middle mb-0 print-beach-table';
+
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    const firstTh = document.createElement('th');
+    firstTh.className = 'room-cell';
+    firstTh.textContent = 'Ombr.';
+    headerRow.appendChild(firstTh);
+    dates.forEach(d => {
+      const dd = new Date(d + 'T00:00:00');
+      const th = document.createElement('th');
+      th.className = 'date-header';
+      if (dd.getDay() === 6) th.classList.add('saturday-column');
+      th.innerHTML = '<div class="day-number">' + dd.getDate() + '</div><div class="day-abbr">' + dayAbbr(dd) + '</div>';
+      headerRow.appendChild(th);
+    });
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+    const groups = groupByRow(state.umbrellas);
+    for (const [rowLabel, list] of groups) {
+      const hr = document.createElement('tr');
+      hr.className = 'floor-header';
+      const td = document.createElement('td');
+      td.colSpan = dates.length + 1;
+      td.textContent = rowLabel;
+      hr.appendChild(td);
+      tbody.appendChild(hr);
+
+      list.forEach(um => {
+        const row = document.createElement('tr');
+        const codeCell = document.createElement('td');
+        codeCell.className = 'room-cell';
+        codeCell.innerHTML = '<div class="room-number">' + um.code + '</div>';
+        row.appendChild(codeCell);
+
+        const cellAssignments = new Array(dates.length).fill(null);
+        (assignments || []).forEach(a => {
+          if (a.umbrella_id !== um.id) return;
+          for (let i = 0; i < dates.length; i++) {
+            if (dates[i] >= a.start_date && dates[i] <= a.end_date) cellAssignments[i] = a;
+          }
+        });
+
+        let current = null, startIdx = -1;
+        for (let i = 0; i <= cellAssignments.length; i++) {
+          const same = i < cellAssignments.length && cellAssignments[i] && current && cellAssignments[i].id === current.id;
+          if (same) continue;
+          if (current) {
+            const endIdx = i - 1;
+            const colSpan = endIdx - startIdx + 1;
+            const tdc = document.createElement('td');
+            tdc.colSpan = colSpan;
+            tdc.className = 'reservation-cell';
+            tdc.style.setProperty('--cols', colSpan);
+            const bar = document.createElement('div');
+            const color = (current.reservation && current.reservation.reservation_color) || 'yellow';
+            bar.className = 'reservation-bar reservation-color-' + color;
+            const body = document.createElement('div');
+            body.className = 'reservation-body';
+            const cen = document.createElement('div');
+            cen.className = 'reservation-center';
+            const name = document.createElement('div');
+            name.className = 'reservation-client-name';
+            name.textContent = (current.reservation && current.reservation.client && current.reservation.client.name) || 'Cliente';
+            cen.appendChild(name);
+            body.appendChild(cen);
+            bar.appendChild(body);
+            tdc.appendChild(bar);
+            row.appendChild(tdc);
+          }
+          if (i === cellAssignments.length) break;
+          if (cellAssignments[i]) { current = cellAssignments[i]; startIdx = i; }
+          else {
+            const cell = document.createElement('td');
+            const dd = new Date(dates[i] + 'T00:00:00');
+            if (dd.getDay() === 6) cell.classList.add('saturday-column');
+            row.appendChild(cell);
+            current = null;
+          }
+        }
+        tbody.appendChild(row);
+      });
+    }
+    table.appendChild(tbody);
+    wrap.appendChild(table);
+    return wrap;
+  }
+
+  // Public API used by the print flow to render the 2-month print view.
+  window.buildBeachMonthBlock = buildMonthBlock;
+
   // Public entry point used by the navigation handler
   window.loadBeach = async function () {
     if (state.year == null) {
