@@ -68,6 +68,7 @@
     <script src="js/overview.js" defer></script>
     <script src="js/beach.js" defer></script>
     <script src="js/reservation-beach.js" defer></script>
+    <script src="js/print.js" defer></script>
 </head>
 <body>
 <!-- Auth splash: shown until the guard verifies the session (prevents FOUC) -->
@@ -211,6 +212,9 @@
                         </button>
                         <button class="btn btn-sm btn-outline-secondary" id="next-month">
                             <i class="fas fa-chevron-right"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary print-btn" data-print-section="reservations" aria-label="Stampa">
+                            <i class="fas fa-print me-1"></i> Stampa
                         </button>
                         <button class="btn btn-sm btn-primary" id="add-reservation">
                             <i class="fas fa-plus me-1"></i> Prenota
@@ -385,6 +389,9 @@
                         <button class="btn btn-sm btn-outline-secondary" id="beach-today-btn">Oggi</button>
                         <button class="btn btn-sm btn-outline-secondary" id="beach-next-month" aria-label="Mese successivo">
                             <i class="fas fa-chevron-right"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary print-btn" data-print-section="beach" aria-label="Stampa">
+                            <i class="fas fa-print me-1"></i> Stampa
                         </button>
                     </div>
                 </div>

@@ -1949,3 +1949,66 @@ canvas { background: transparent; }
     border-radius: var(--ap-radius-sm) !important;
   }
 }
+
+/* ===========================================================
+   Print styles: only show the active section
+   =========================================================== */
+@media print {
+  @page { size: A4 landscape; margin: 10mm; }
+
+  html, body {
+    background: #fff !important;
+    color: #000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Hide chrome: sidebar, topbar, backdrop, modals, splash, all buttons */
+  #sidebar-wrapper,
+  #mobile-topbar,
+  #sidebar-backdrop,
+  #auth-splash,
+  .modal,
+  .modal-backdrop,
+  .print-btn,
+  .btn,
+  #add-reservation,
+  #logout-link,
+  .reservations-toolbar,
+  .reservations-page__header .reservations-stats,
+  .overview-search,
+  .overview-lists,
+  .kpi-grid,
+  form,
+  #mobile-topbar-spacer,
+  .mobile-refresh {
+    display: none !important;
+  }
+
+  #wrapper { display: block !important; }
+  #page-content-wrapper { min-width: 0 !important; width: 100% !important; }
+  .container-fluid { padding: 0 !important; max-width: none !important; }
+
+  /* Only the active section prints */
+  .section { display: none !important; }
+  .section.active { display: block !important; }
+
+  /* Tables: full width, small font, allow break inside */
+  table { width: 100% !important; font-size: 10pt; border-collapse: collapse; }
+  th, td { border-color: #999 !important; padding: 2px 3px !important; }
+
+  /* Reservation bars: keep the flat colors */
+  .reservation-bar { box-shadow: none !important; }
+  .reservation-bar.reservation-color-yellow { background: #ffd60a !important; }
+  .reservation-bar.reservation-color-blue   { background: #0a84ff !important; }
+  .reservation-bar.reservation-color-orange { background: #ff9500 !important; }
+
+  /* Make saturday stripes visible in print */
+  .reservation-bg-stripe { background: #c9c9cf !important; }
+
+  /* Header of the section with title */
+  h1, h2, h3, h4 { color: #000 !important; }
+
+  /* Avoid page break inside a row */
+  tr { page-break-inside: avoid; }
+}

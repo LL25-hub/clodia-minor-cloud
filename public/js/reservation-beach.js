@@ -146,48 +146,81 @@
     };
   }
 
-  // Wrap saveReservation so after save we sync the beach assignment
+  // Intercept api.reservations.create so we can capture the new id for
+  // brand-new reservations (they don't have #reservation-id populated).
+  let lastCreatedId = null;
+  function installApiHook() {
+    if (!window.api || !window.api.reservations) return setTimeout(installApiHook, 100);
+    const origCreate = window.api.reservations.create;
+    if (origCreate && !origCreate.__cmBeachWrapped) {
+      window.api.reservations.create = async function (data) {
+        const res = await origCreate.apply(this, arguments);
+        if (res && res.id) lastCreatedId = res.id;
+        return res;
+      };
+      window.api.reservations.create.__cmBeachWrapped = true;
+    }
+  }
+
+  // Wrap saveReservation so after save we sync the beach assignment.
   function installSaveHook() {
-    // Listen to a custom event dispatched after save, OR monkey-patch.
-    // Easier: observe the "reservation saved" toast is not reliable. Use patch.
     const originalSave = window.saveReservation;
     if (typeof originalSave !== 'function') return setTimeout(installSaveHook, 100);
 
     window.saveReservation = async function () {
-      // Let the existing flow run and record whether it created a new reservation
-      const prevId = parseInt($('reservation-id').value || '0', 10);
-      // We cannot cleanly intercept the new id from the original function, so we
-      // listen to api.reservations.create/update calls. Simpler: call original,
-      // then query the latest reservation by client/date to find ours. Too fragile.
-      // Instead we await the original save and afterwards, if #reservation-id
-      // holds a non-empty id, use that; otherwise, find the most recent
-      // reservation from the fresh list.
-      const res = originalSave.apply(this, arguments);
-      if (res && typeof res.then === 'function') await res;
+      // The real source of truth is the global currentReservationId set by
+      // openReservationModal(). #reservation-id is never populated.
+      const editingId = window.currentReservationId || null;
 
-      // At this point the modal is already hidden and sections refreshed.
-      // #reservation-id is cleared after save, so we can't use it directly.
-      // Strategy: if we were editing and `prevId` > 0 then sync that id.
-      // If new, skip (user can reopen the reservation to assign the umbrella).
+      // Snapshot beach form BEFORE the original save hides the modal / resets
+      const cb = $('has-beach');
+      const sel = $('beach-umbrella-select');
+      const s = $('beach-start-date');
+      const e = $('beach-end-date');
+      const beachSnapshot = {
+        enabled: !!(cb && cb.checked),
+        umbrella_id: sel && sel.value ? parseInt(sel.value, 10) : null,
+        start_date: s && s.value ? s.value : null,
+        end_date: e && e.value ? e.value : null
+      };
+
+      // Reset capture before running the save
+      lastCreatedId = null;
+      const result = originalSave.apply(this, arguments);
+      if (result && typeof result.then === 'function') {
+        try { await result; } catch (_) { /* errors are surfaced by original */ }
+      }
+
+      // Decide the target reservation id: editing -> editingId, else the
+      // freshly-created id captured by the api.create interceptor
+      const targetId = editingId || lastCreatedId;
+      if (!targetId) return result;
+
       try {
-        const sel = $('beach-umbrella-select');
-        const cb = $('has-beach');
-        const s = $('beach-start-date');
-        const e = $('beach-end-date');
-        if (!sel || !cb) return res;
-        if (!prevId) return res; // new reservation — assignment to be set on next edit
+        // Fall back to check-in/check-out if beach dates are empty
+        const ci = $('check-in-date'), co = $('check-out-date');
+        const startDate = beachSnapshot.start_date || (ci && ci.value) || null;
+        const endDate = beachSnapshot.end_date || (co && co.value) || null;
+
         const payload = {
-          reservation_id: prevId,
-          umbrella_id: cb.checked && sel.value ? parseInt(sel.value, 10) : null,
-          start_date: cb.checked && s && s.value ? s.value : null,
-          end_date: cb.checked && e && e.value ? e.value : null
+          reservation_id: targetId,
+          umbrella_id: beachSnapshot.enabled && beachSnapshot.umbrella_id ? beachSnapshot.umbrella_id : null,
+          start_date: beachSnapshot.enabled ? startDate : null,
+          end_date: beachSnapshot.enabled ? endDate : null
         };
-        await window.api.beach.assignments.sync(payload);
-        document.dispatchEvent(new CustomEvent('beach-data-invalidated'));
+
+        // Only call the API if there's a meaningful change to sync
+        if (payload.umbrella_id || !beachSnapshot.enabled) {
+          await window.api.beach.assignments.sync(payload);
+          document.dispatchEvent(new CustomEvent('beach-data-invalidated'));
+        }
       } catch (err) {
         console.error('Beach sync failed:', err);
+        if (window.uiUtils && window.uiUtils.showToast) {
+          window.uiUtils.showToast('Errore durante il salvataggio dell\'ombrellone: ' + (err.message || err), 'danger');
+        }
       }
-      return res;
+      return result;
     };
   }
 
@@ -219,5 +252,6 @@
 
     installOpenWrapper();
     installSaveHook();
+    installApiHook();
   });
 })();
