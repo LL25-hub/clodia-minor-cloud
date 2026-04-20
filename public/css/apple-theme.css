@@ -2173,37 +2173,51 @@ canvas { background: transparent; }
   #reservation-table td,
   #beach-table th,
   #beach-table td {
-    padding: 1px 1px !important;
+    padding: 2mm 1px !important;
     height: auto !important;
     border-color: #bbb !important;
+    line-height: 1;
   }
   #reservation-table .date-header,
   #beach-table .date-header {
-    font-size: 5.5pt !important;
-    padding: 1px 0 !important;
+    font-size: 6pt !important;
+    padding: 1mm 0 !important;
   }
   #reservation-table .day-number,
   #beach-table .day-number {
-    font-size: 6pt !important;
+    font-size: 7pt !important;
     line-height: 1;
+    font-weight: 700;
   }
   #reservation-table .day-abbr,
   #beach-table .day-abbr {
-    font-size: 4.5pt !important;
+    font-size: 5pt !important;
     line-height: 1;
   }
+  /* Apartment code column: larger + bolder, only in print */
   #reservation-table .room-cell,
   #beach-table .room-cell {
-    width: 36px !important;
-    max-width: 36px !important;
-    min-width: 36px !important;
-    font-size: 6pt !important;
-    padding: 1px 2px !important;
+    width: 48px !important;
+    max-width: 48px !important;
+    min-width: 48px !important;
+    font-size: 10pt !important;
+    font-weight: 700 !important;
+    padding: 2mm 3px !important;
+    text-align: center;
+    color: #000 !important;
+  }
+  #reservation-table .room-cell .room-number,
+  #beach-table .room-cell .room-number {
+    font-size: 10pt !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.01em;
   }
   #reservation-table .floor-header td,
   #beach-table .floor-header td {
-    font-size: 6pt !important;
-    padding: 1px 4px !important;
+    font-size: 7pt !important;
+    font-weight: 700 !important;
+    padding: 1mm 4px !important;
+    background: #e8e8ed !important;
   }
   #reservation-table .reservation-bar,
   #beach-table .reservation-bar {
