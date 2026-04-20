@@ -115,6 +115,7 @@ async function deleteReservation(reservationId) {
     // Chiamata API per eliminare la prenotazione (ora è un soft delete)
     await api.reservations.delete(reservationId);
     window.invalidateSectionCache && window.invalidateSectionCache(['dashboard', 'reservations', 'history', 'trash']);
+    if (window.__dataCache) window.__dataCache.at = 0;
 
     // Mostra messaggio di successo
     uiUtils.showToast('Prenotazione spostata nel cestino!', 'success');
@@ -1635,6 +1636,7 @@ async function saveReservation() {
       uiUtils.showToast('Prenotazione creata con successo!', 'success');
     }
     window.invalidateSectionCache && window.invalidateSectionCache(['dashboard', 'reservations', 'history']);
+    if (window.__dataCache) window.__dataCache.at = 0;
     
     // Ripristina il pulsante e chiudi il modale
     saveBtn.disabled = false;
@@ -1845,14 +1847,20 @@ async function saveClient() {
 
 async function loadRooms() {
   try {
-    // MODIFICATO: roomsList cerca ora apartments-list invece di rooms-list
     const roomsList = document.getElementById('apartments-list');
-    if (roomsList) {
-      uiUtils.showLoading(roomsList, 'Caricamento appartamenti...');
+    let rooms;
+
+    const cache = window.__dataCache;
+    const CACHE_TTL = 60 * 1000;
+    const cacheFresh = cache && cache.rooms && (Date.now() - (cache.at || 0)) < CACHE_TTL;
+
+    if (cacheFresh) {
+      rooms = cache.rooms;
+    } else {
+      if (roomsList) uiUtils.showLoading(roomsList, 'Caricamento appartamenti...');
+      rooms = await api.rooms.getAll();
     }
-    
-    const rooms = await api.rooms.getAll();
-    
+
     updateRoomsList(rooms);
     updateRoomSelects(rooms);
   } catch (error) {
@@ -2223,15 +2231,21 @@ function displayAvailableApartments(availableRooms, checkInDate, checkOutDate) {
 
 async function loadReservationsHistory() {
   try {
-    // MODIFICATO: historyList deve cercare 'rooms-list' invece di 'history-list'
     const historyList = document.getElementById('rooms-list');
-    if (historyList) {
-      uiUtils.showLoading(historyList, 'Caricamento storico prenotazioni...');
+    let reservations;
+
+    // Instant render from shared cache if available
+    const cache = window.__dataCache;
+    const CACHE_TTL = 60 * 1000;
+    const cacheFresh = cache && cache.reservations && (Date.now() - (cache.at || 0)) < CACHE_TTL;
+
+    if (cacheFresh) {
+      reservations = cache.reservations;
+    } else {
+      if (historyList) uiUtils.showLoading(historyList, 'Caricamento storico prenotazioni...');
+      reservations = await api.reservations.getAll();
     }
-    
-    // Carica tutte le prenotazioni dal server
-    const reservations = await api.reservations.getAll();
-    
+
     // Memorizza tutte le prenotazioni per la ricerca
     allReservations = reservations;
     

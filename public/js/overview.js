@@ -34,29 +34,47 @@
     if (el) el.textContent = value;
   }
 
-  // --- Data fetch ---
-  async function fetchAll() {
+  // --- Data fetch with shared cache ---
+  // window.__dataCache stores { rooms, reservations, at } so other sections
+  // (Prenotazioni, Registro) can render instantly from memory while a
+  // background refresh keeps the data fresh.
+  const CACHE_TTL = 60 * 1000;
+  function getCache() {
+    return window.__dataCache || (window.__dataCache = { rooms: null, reservations: null, at: 0 });
+  }
+  function isCacheFresh() {
+    const c = getCache();
+    return c.rooms && c.reservations && (Date.now() - c.at) < CACHE_TTL;
+  }
+  async function fetchAll(options) {
+    const force = options && options.force;
+    const c = getCache();
+    if (!force && isCacheFresh()) {
+      return { rooms: c.rooms, reservations: c.reservations };
+    }
     const [roomsRes, reservationsRes] = await Promise.all([
       window.api.rooms.getAll(),
       window.api.reservations.getAll()
     ]);
-    return {
-      rooms: Array.isArray(roomsRes) ? roomsRes : [],
-      reservations: Array.isArray(reservationsRes) ? reservationsRes : []
-    };
+    c.rooms = Array.isArray(roomsRes) ? roomsRes : [];
+    c.reservations = Array.isArray(reservationsRes) ? reservationsRes : [];
+    c.at = Date.now();
+    // Let other pages know new data is available
+    document.dispatchEvent(new CustomEvent('data-cache-updated', { detail: { at: c.at } }));
+    return { rooms: c.rooms, reservations: c.reservations };
   }
+  // Expose so other scripts can reuse the cache
+  window.__prefetchData = fetchAll;
 
   // --- KPIs ---
   function computeKPIs(rooms, reservations) {
     const today = todayISO();
     const todayStr = toISODate(today);
-    const year = today.getFullYear();
     const weekEnd = new Date(today); weekEnd.setDate(weekEnd.getDate() + 7);
 
     let arrivalsToday = 0, departuresToday = 0;
     let arrivalsWeek = 0, departuresWeek = 0;
-    let future = 0, pending = 0, pendingCount = 0;
-    let earnedYear = 0, estimateYear = 0;
+    let future = 0;
 
     const occupiedRoomIds = new Set();
 
@@ -73,22 +91,6 @@
 
       if (ci <= today && co > today) occupiedRoomIds.add(r.room_id);
       if (ci > today) future++;
-
-      // Revenue: only consider reservations that are active this year
-      if (ci.getFullYear() === year || co.getFullYear() === year) {
-        const est = parseFloat(r.estimate_amount) || 0;
-        const paid = (parseFloat(r.cash_amount) || 0) + (parseFloat(r.transfer_amount) || 0);
-        estimateYear += est;
-        earnedYear += paid;
-        const diff = est - paid;
-        if (diff > 0 && ci <= weekEnd) {
-          // Only count "da incassare" on reservations happening soon-ish
-        }
-        if (diff > 0) {
-          pending += diff;
-          pendingCount++;
-        }
-      }
     });
 
     const totalRooms = rooms.length;
@@ -99,7 +101,7 @@
     return {
       totalRooms, occupied, free, rate,
       arrivalsToday, departuresToday, arrivalsWeek, departuresWeek,
-      future, pending, pendingCount, earnedYear, estimateYear
+      future
     };
   }
 
@@ -113,10 +115,6 @@
     setText('kpi-arrivals-week', k.arrivalsWeek);
     setText('kpi-departures-today', k.departuresToday);
     setText('kpi-departures-week', k.departuresWeek);
-    setText('kpi-earned', formatMoney(k.earnedYear));
-    setText('kpi-estimate', formatMoney(k.estimateYear));
-    setText('kpi-pending', formatMoney(k.pending));
-    setText('kpi-pending-count', k.pendingCount);
     setText('kpi-future-count', k.future);
 
     const today = new Date();
@@ -137,23 +135,11 @@
       .filter(r => { const co = parseDate(r.check_out_date); return co && co >= today && co <= weekEnd; })
       .sort((a, b) => parseDate(a.check_out_date) - parseDate(b.check_out_date));
 
-    const pending = reservations
-      .map(r => {
-        const est = parseFloat(r.estimate_amount) || 0;
-        const paid = (parseFloat(r.cash_amount) || 0) + (parseFloat(r.transfer_amount) || 0);
-        return { r, diff: est - paid };
-      })
-      .filter(x => x.diff > 0.01 && parseDate(x.r.check_in_date) && parseDate(x.r.check_out_date) > today)
-      .sort((a, b) => parseDate(a.r.check_in_date) - parseDate(b.r.check_in_date))
-      .slice(0, 8);
-
     renderReservationList('list-upcoming-checkins', upcomingCheckins, 'check_in_date');
     renderReservationList('list-upcoming-checkouts', upcomingCheckouts, 'check_out_date');
-    renderPendingList('list-pending-payments', pending);
 
     setText('list-checkins-count', upcomingCheckins.length);
     setText('list-checkouts-count', upcomingCheckouts.length);
-    setText('list-pending-count', pending.length);
   }
 
   function listItem() {
@@ -242,7 +228,7 @@
     const el = document.getElementById('chart-occupancy-30d');
     if (!el || typeof Chart === 'undefined') return;
     destroyChart('occ30');
-    const total = Math.max(rooms.length, 1);
+    const totalRooms = Math.max(rooms.length, 1);
     const labels = []; const data = [];
     const today = todayISO();
     for (let i = 0; i < 30; i++) {
@@ -254,7 +240,7 @@
         if (!ci || !co) return;
         if (ci <= d && co > d) occupiedSet.add(r.room_id);
       });
-      data.push(Math.round((occupiedSet.size / total) * 100));
+      data.push(occupiedSet.size);
     }
     const ctx = el.getContext('2d');
     const grad = ctx.createLinearGradient(0, 0, 0, 240);
@@ -265,7 +251,7 @@
       data: {
         labels,
         datasets: [{
-          label: 'Occupazione %',
+          label: 'Occupati',
           data,
           borderColor: accent(),
           backgroundColor: grad,
@@ -280,9 +266,18 @@
         responsive: true,
         maintainAspectRatio: false,
         interaction: { intersect: false, mode: 'index' },
-        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.parsed.y + '%' } } },
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: c => c.parsed.y + ' / ' + totalRooms + ' appartamenti' } }
+        },
         scales: {
-          y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,0.06)' } },
+          y: {
+            beginAtZero: true,
+            max: totalRooms,
+            ticks: { stepSize: 1, precision: 0 },
+            grid: { color: 'rgba(0,0,0,0.06)' },
+            title: { display: true, text: 'Appartamenti occupati', color: 'rgba(0,0,0,0.55)', font: { size: 11 } }
+          },
           x: { ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 10 }, grid: { display: false } }
         }
       }
@@ -293,8 +288,15 @@
     const el = document.getElementById('chart-payments');
     if (!el || typeof Chart === 'undefined') return;
     destroyChart('pay');
+    const currentYear = new Date().getFullYear();
     let paid = 0, partial = 0, unpaid = 0;
     reservations.forEach(r => {
+      const ci = parseDate(r.check_in_date);
+      const co = parseDate(r.check_out_date);
+      // Only count reservations that touch the current year
+      if (!ci || !co) return;
+      if (ci.getFullYear() !== currentYear && co.getFullYear() !== currentYear) return;
+
       const est = parseFloat(r.estimate_amount) || 0;
       const got = (parseFloat(r.cash_amount) || 0) + (parseFloat(r.transfer_amount) || 0);
       if (est <= 0 && got <= 0) return;
@@ -316,7 +318,10 @@
         responsive: true,
         maintainAspectRatio: false,
         cutout: '65%',
-        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, boxHeight: 12, padding: 12 } } }
+        plugins: {
+          legend: { position: 'bottom', labels: { boxWidth: 12, boxHeight: 12, padding: 12 } },
+          tooltip: { callbacks: { title: () => 'Anno ' + currentYear } }
+        }
       }
     });
   }
