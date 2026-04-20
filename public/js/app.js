@@ -1442,10 +1442,23 @@ async function fillReservationForm(reservation) {
     
     // Imposta il numero di persone
     document.getElementById('num-people').value = reservation.num_people || '1';
-    
-    // Imposta i checkbox (is_paid rimosso perché ora è calcolato automaticamente)
-    document.getElementById('has-beach').checked = reservation.has_beach === 1;
-    document.getElementById('has-deposit').checked = reservation.has_deposit === 1;
+
+    // Persist the id into the hidden field so other modules can read it
+    const hiddenIdField = document.getElementById('reservation-id');
+    if (hiddenIdField) hiddenIdField.value = reservation.id != null ? String(reservation.id) : '';
+
+    // Imposta i checkbox: gestione sia boolean (Postgres/Supabase) sia integer
+    const hasBeachEl = document.getElementById('has-beach');
+    const hasDepositEl = document.getElementById('has-deposit');
+    if (hasBeachEl) {
+      hasBeachEl.checked = reservation.has_beach == 1 || reservation.has_beach === true;
+      // Notify listeners (e.g. beach block toggle) that the value changed programmatically
+      hasBeachEl.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    if (hasDepositEl) {
+      hasDepositEl.checked = reservation.has_deposit == 1 || reservation.has_deposit === true;
+      hasDepositEl.dispatchEvent(new Event('change', { bubbles: true }));
+    }
     
     // Imposta gli importi
     document.getElementById('estimate-amount').value = reservation.estimate_amount || '0';

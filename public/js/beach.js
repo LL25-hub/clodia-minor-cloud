@@ -52,13 +52,37 @@
   async function loadMonth() {
     const monthStart = firstDayOf(state.year, state.month);
     const monthEnd = lastDayOf(state.year, state.month);
+    const tasks = [];
+
     if (!state.umbrellas.length) {
-      state.umbrellas = await window.api.beach.umbrellas.getAll();
+      tasks.push(
+        window.api.beach.umbrellas.getAll().then(u => { state.umbrellas = u || []; })
+      );
     }
-    state.assignments = await window.api.beach.assignments.list({
-      from: monthStart, to: monthEnd
-    });
+    // Month assignments (for the calendar view)
+    tasks.push(
+      window.api.beach.assignments.list({ from: monthStart, to: monthEnd })
+        .then(a => { state.assignments = a || []; })
+    );
+    // All assignments (for pending detection across any period)
+    tasks.push(
+      window.api.beach.assignments.list()
+        .then(a => { state.allAssignments = a || []; })
+    );
+    // All reservations (use shared cache if fresh)
+    tasks.push(loadAllReservations().then(r => { state.reservations = r; }));
+
+    await Promise.all(tasks);
     render();
+    renderPending();
+  }
+
+  async function loadAllReservations() {
+    const cache = window.__dataCache;
+    if (cache && cache.reservations && (Date.now() - (cache.at || 0)) < 60 * 1000) {
+      return cache.reservations;
+    }
+    return await window.api.reservations.getAll();
   }
 
   function renderHeader(dates) {
@@ -213,6 +237,71 @@
     renderRows(dates);
   }
 
+  function renderPending() {
+    const block = $('beach-pending-block');
+    const listEl = $('beach-pending-list');
+    const countEl = $('beach-pending-count');
+    if (!block || !listEl) return;
+
+    const reservations = state.reservations || [];
+    const assignments = state.allAssignments || [];
+    const withAssignment = new Set(assignments.map(a => a.reservation_id));
+
+    const pending = reservations
+      .filter(r => !r.deleted)
+      .filter(r => r.has_beach == 1 || r.has_beach === true)
+      .filter(r => !withAssignment.has(r.id))
+      .sort((a, b) => {
+        const ca = new Date(a.check_in_date || 0);
+        const cb = new Date(b.check_in_date || 0);
+        return ca - cb;
+      });
+
+    if (countEl) countEl.textContent = String(pending.length);
+
+    if (!pending.length) {
+      block.hidden = true;
+      listEl.innerHTML = '';
+      return;
+    }
+    block.hidden = false;
+    listEl.innerHTML = '';
+
+    pending.forEach(r => {
+      const li = document.createElement('li');
+      li.className = 'beach-pending__item';
+
+      const left = document.createElement('div');
+      left.className = 'beach-pending__main';
+      const name = document.createElement('div');
+      name.className = 'beach-pending__client';
+      name.textContent = r.client_name || 'Cliente';
+      left.appendChild(name);
+      const meta = document.createElement('div');
+      meta.className = 'beach-pending__meta';
+      const shortDate = d => {
+        if (!d) return '';
+        const dd = new Date(d + 'T00:00:00');
+        return dd.toLocaleDateString('it-IT', { day: '2-digit', month: 'short' });
+      };
+      meta.innerHTML = '<i class="fas fa-building"></i> ' + (r.room_number || '-') +
+        ' · <i class="far fa-calendar"></i> ' + shortDate(r.check_in_date) + ' → ' + shortDate(r.check_out_date);
+      left.appendChild(meta);
+      li.appendChild(left);
+
+      const cta = document.createElement('button');
+      cta.type = 'button';
+      cta.className = 'beach-pending__cta';
+      cta.innerHTML = '<i class="fas fa-umbrella-beach"></i> Assegna';
+      li.appendChild(cta);
+
+      li.addEventListener('click', function () {
+        if (typeof window.editReservation === 'function') window.editReservation(r.id);
+      });
+      listEl.appendChild(li);
+    });
+  }
+
   function goToMonth(year, month) {
     if (month < 0) { month = 11; year -= 1; }
     else if (month > 11) { month = 0; year += 1; }
@@ -251,7 +340,8 @@
     // Refresh when a reservation is saved (cache invalidation signal)
     document.addEventListener('beach-data-invalidated', function () {
       state.assignments = [];
-      state.umbrellas = [];
+      state.allAssignments = [];
+      state.reservations = [];
       if (state.year != null) loadMonth();
     });
   });

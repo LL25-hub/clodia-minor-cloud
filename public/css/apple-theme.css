@@ -1040,6 +1040,103 @@ canvas { background: transparent; }
 }
 
 /* ===========================================================
+   Beach pending (reservations with beach service but no assignment)
+   =========================================================== */
+.beach-pending {
+  background: var(--ap-surface);
+  border: 1px solid var(--ap-separator);
+  border-left: 4px solid #ff9f0a;
+  border-radius: var(--ap-radius);
+  padding: 14px 18px 18px;
+  box-shadow: var(--ap-shadow-sm);
+}
+.beach-pending__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 2px;
+}
+.beach-pending__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ap-text);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.beach-pending__title i { color: #ff9f0a; }
+.beach-pending__count {
+  background: rgba(255, 159, 10, 0.16);
+  color: #8a4d00;
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.beach-pending__hint {
+  margin: 4px 0 12px;
+  color: var(--ap-text-secondary);
+  font-size: 0.85rem;
+}
+.beach-pending__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 8px;
+}
+.beach-pending__item {
+  background: var(--ap-bg);
+  border: 1px solid var(--ap-separator);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: background 0.12s ease, transform 0.08s ease, box-shadow 0.15s ease;
+}
+.beach-pending__item:hover {
+  background: var(--ap-surface);
+  transform: translateY(-1px);
+  box-shadow: var(--ap-shadow-sm);
+}
+.beach-pending__main { flex: 1; min-width: 0; }
+.beach-pending__client {
+  font-weight: 600;
+  color: var(--ap-text);
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.beach-pending__meta {
+  margin-top: 2px;
+  font-size: 0.8rem;
+  color: var(--ap-text-secondary);
+}
+.beach-pending__meta i { font-size: 0.7rem; opacity: 0.7; margin-right: 2px; }
+.beach-pending__cta {
+  background: #ff9f0a;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.15s ease;
+}
+.beach-pending__cta:hover { background: #e28a00; }
+
+/* ===========================================================
    Legacy beach grid (kept for compatibility if needed)
    =========================================================== */
 .beach-page { display: flex; flex-direction: column; gap: 18px; }

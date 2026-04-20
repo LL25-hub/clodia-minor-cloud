@@ -175,9 +175,11 @@
     if (typeof originalSave !== 'function') return setTimeout(installSaveHook, 100);
 
     window.saveReservation = async function () {
-      // Use the id we captured when the modal was opened (app.js keeps
-      // currentReservationId as a lexical let that's not accessible via window).
-      const editingId = editingReservationId || null;
+      // Source of truth for the id being edited:
+      //   1. #reservation-id hidden field (populated by fillReservationForm)
+      //   2. editingReservationId captured by our openReservationModal wrapper
+      const hidden = parseInt(($('reservation-id') && $('reservation-id').value) || '0', 10);
+      const editingId = hidden || editingReservationId || null;
 
       // Snapshot beach form BEFORE the original save hides the modal / resets
       const cb = $('has-beach');
