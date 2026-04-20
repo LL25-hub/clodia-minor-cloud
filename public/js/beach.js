@@ -344,6 +344,21 @@
 
     const table = document.createElement('table');
     table.className = 'table table-sm align-middle mb-0 print-beach-table';
+    table.dataset.days = String(dates.length);
+
+    // <colgroup> with explicit widths so every day fits horizontally.
+    // Widths are intentionally set inline so the CSS @media print rules
+    // can still override when in 2-month mode.
+    const colgroup = document.createElement('colgroup');
+    const colUmbrella = document.createElement('col');
+    colUmbrella.className = 'col-umbrella';
+    colgroup.appendChild(colUmbrella);
+    dates.forEach(() => {
+      const c = document.createElement('col');
+      c.className = 'col-day';
+      colgroup.appendChild(c);
+    });
+    table.appendChild(colgroup);
 
     const thead = document.createElement('thead');
     const headerRow = document.createElement('tr');

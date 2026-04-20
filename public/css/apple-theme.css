@@ -2291,12 +2291,12 @@ canvas { background: transparent; }
   body[data-print-target="beach"] #print-beach-months {
     display: flex !important;
     flex-direction: column;
-    gap: 3mm;
+    gap: 2mm;
     position: fixed !important;
     top: 0; left: 0;
     width: 100vw;
     height: 100vh;
-    padding: 4mm;
+    padding: 2mm;
     background: #fff;
     box-sizing: border-box;
     overflow: hidden !important;
@@ -2306,6 +2306,16 @@ canvas { background: transparent; }
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }
+  /* Column widths: umbrella column + narrow day columns so all 28/30/31 days fit horizontally */
+  body[data-print-target="beach"] .print-beach-table col.col-umbrella { width: 14mm; }
+  body[data-print-target="beach"] .print-beach-table col.col-day { width: 8.5mm; }
+  body[data-print-target="beach"][data-print-mode="2"] .print-beach-table col.col-umbrella { width: 12mm; }
+  body[data-print-target="beach"][data-print-mode="2"] .print-beach-table col.col-day { width: 8.5mm; }
+  /* For months with 28 days, let them stretch a bit more */
+  body[data-print-target="beach"] .print-beach-table[data-days="28"] col.col-day { width: 9.5mm; }
+  body[data-print-target="beach"] .print-beach-table[data-days="29"] col.col-day { width: 9.2mm; }
+  body[data-print-target="beach"] .print-beach-table[data-days="30"] col.col-day { width: 8.9mm; }
+  body[data-print-target="beach"] .print-beach-table[data-days="31"] col.col-day { width: 8.5mm; }
   body[data-print-target="beach"] .print-month-block {
     flex: 1 1 0;
     min-height: 0;
