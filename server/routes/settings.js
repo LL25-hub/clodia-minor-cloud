@@ -10,7 +10,7 @@ router.get('/', async (req, res, next) => {
     if (error) throw error;
     if (!data) {
       const { data: created, error: insErr } = await supabase
-        .from('settings').insert({ hotel_name: 'Sistema Gestione Hotel' }).select().single();
+        .from('settings').insert({ hotel_name: 'Calendar' }).select().single();
       if (insErr) throw insErr;
       return res.json(created);
     }
@@ -21,7 +21,7 @@ router.get('/', async (req, res, next) => {
 // PUT settings
 router.put('/', async (req, res, next) => {
   const { hotel_name } = req.body;
-  if (!hotel_name) return res.status(400).json({ error: 'Nome hotel è obbligatorio' });
+  if (!hotel_name) return res.status(400).json({ error: 'Nome obbligatorio' });
   try {
     const { data: current } = await supabase
       .from('settings').select('id').order('id', { ascending: false }).limit(1).maybeSingle();

@@ -1,6 +1,6 @@
-# Clodia Minor - Gestione Appartamenti (Cloud)
+# Calendar
 
-Versione cloud del gestionale **Clodia Minor**:
+Applicazione web privata.
 - **Frontend**: HTML + Bootstrap statico (`public/`)
 - **Backend**: Express + Node.js come funzione serverless su Vercel (`api/index.js`)
 - **Database**: Supabase (PostgreSQL)
@@ -26,7 +26,7 @@ Deploy automatico via push su GitHub (connesso a Vercel).
 ## Struttura
 
 ```
-clodia-minor-cloud/
+calendar/
 ├── api/index.js         # Serverless Express app (handler)
 ├── public/              # Frontend statico (servito da Vercel)
 ├── server/
@@ -39,4 +39,4 @@ clodia-minor-cloud/
 
 ## Licenza
 
-© 2025 Clodia Minor Team
+© 2025 Calendar Team

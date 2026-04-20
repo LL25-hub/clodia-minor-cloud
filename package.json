@@ -1,7 +1,7 @@
 {
-  "name": "clodia-minor-cloud",
+  "name": "calendar",
   "version": "1.0.0",
-  "description": "Clodia Minor - Gestione Appartamenti (Vercel + Supabase)",
+  "description": "Calendar",
   "private": true,
   "engines": {
     "node": ">=18"
