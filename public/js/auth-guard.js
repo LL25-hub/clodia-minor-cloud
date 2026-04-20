@@ -58,10 +58,22 @@
     };
   }
 
-  // Initial session probe: fastest redirect when the cookie is missing
+  // Initial session probe: fastest redirect when the cookie is missing.
+  // Only reveal the UI after the server confirms the session; if it's
+  // invalid we redirect without ever rendering the protected page.
   originalFetch('/api/me', { credentials: 'same-origin' })
-    .then(function (r) { if (!r.ok) redirectToLogin(); })
-    .catch(function () { /* offline: leave it to other requests */ });
+    .then(function (r) {
+      if (r.ok) {
+        document.documentElement.classList.add('auth-ready');
+      } else {
+        redirectToLogin();
+      }
+    })
+    .catch(function () {
+      // Offline or network error: reveal the UI so the user isn't stuck on
+      // a spinner. Any subsequent API call that gets 401 will redirect.
+      document.documentElement.classList.add('auth-ready');
+    });
 
   // Wire the logout button once the DOM is ready
   document.addEventListener('DOMContentLoaded', function () {
