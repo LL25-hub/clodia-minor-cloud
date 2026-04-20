@@ -246,11 +246,20 @@
     const reservations = state.reservations || [];
     const assignments = state.allAssignments || [];
     const withAssignment = new Set(assignments.map(a => a.reservation_id));
+    const currentYear = new Date().getFullYear();
 
     const pending = reservations
       .filter(r => !r.deleted)
       .filter(r => r.has_beach == 1 || r.has_beach === true)
       .filter(r => !withAssignment.has(r.id))
+      .filter(r => {
+        // Only current-year reservations (check-in or check-out in the year)
+        const ci = parseDate(r.check_in_date);
+        const co = parseDate(r.check_out_date);
+        if (!ci && !co) return false;
+        return (ci && ci.getFullYear() === currentYear) ||
+               (co && co.getFullYear() === currentYear);
+      })
       .sort((a, b) => {
         const ca = new Date(a.check_in_date || 0);
         const cb = new Date(b.check_in_date || 0);
