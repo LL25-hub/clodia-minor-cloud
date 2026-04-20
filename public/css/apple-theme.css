@@ -2048,10 +2048,10 @@ canvas { background: transparent; }
 }
 
 /* ===========================================================
-   Print styles: only show the active section
+   Print styles: A4 landscape, whole Registro on a single page
    =========================================================== */
 @media print {
-  @page { size: A4 landscape; margin: 10mm; }
+  @page { size: A4 landscape; margin: 5mm; }
 
   html, body {
     background: #fff !important;
@@ -2060,7 +2060,7 @@ canvas { background: transparent; }
     print-color-adjust: exact;
   }
 
-  /* Hide chrome: sidebar, topbar, backdrop, modals, splash, all buttons */
+  /* Hide chrome: sidebar, topbar, backdrop, modals, splash, buttons, legend, etc. */
   #sidebar-wrapper,
   #mobile-topbar,
   #sidebar-backdrop,
@@ -2069,6 +2069,7 @@ canvas { background: transparent; }
   .modal-backdrop,
   .print-btn,
   .btn,
+  button,
   #add-reservation,
   #logout-link,
   .reservations-toolbar,
@@ -2078,7 +2079,11 @@ canvas { background: transparent; }
   .kpi-grid,
   form,
   #mobile-topbar-spacer,
-  .mobile-refresh {
+  .mobile-refresh,
+  .reservation-legend,
+  .beach-pending,
+  .beach-legend,
+  .beach-details {
     display: none !important;
   }
 
@@ -2090,22 +2095,101 @@ canvas { background: transparent; }
   .section { display: none !important; }
   .section.active { display: block !important; }
 
-  /* Tables: full width, small font, allow break inside */
-  table { width: 100% !important; font-size: 10pt; border-collapse: collapse; }
-  th, td { border-color: #999 !important; padding: 2px 3px !important; }
+  /* Header: show only the period badge (e.g. "Aprile 2026") */
+  .section.active > .d-flex {
+    display: block !important;
+    margin: 0 0 3mm 0 !important;
+    padding: 0 !important;
+  }
+  .section.active > .d-flex h4 { display: none !important; }
+  .section.active > .d-flex > div { width: 100% !important; text-align: center; }
 
-  /* Reservation bars: keep the flat colors */
-  .reservation-bar { box-shadow: none !important; }
+  .month-badge,
+  #week-display,
+  #beach-month-display {
+    display: block !important;
+    font-size: 14pt !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.01em;
+    color: #000 !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 0 2mm 0 !important;
+    text-align: center;
+    text-transform: capitalize;
+    border: none !important;
+  }
+
+  /* Card wrapper shouldn't eat space */
+  .card { border: none !important; box-shadow: none !important; }
+  .card-body { padding: 0 !important; }
+
+  /* Everything scaled down to fit the whole month in one page */
+  #reservation-table,
+  #beach-table {
+    font-size: 6pt !important;
+    border-collapse: collapse !important;
+    table-layout: fixed !important;
+    width: 100% !important;
+  }
+  #reservation-table th,
+  #reservation-table td,
+  #beach-table th,
+  #beach-table td {
+    padding: 1px 1px !important;
+    height: auto !important;
+    border-color: #bbb !important;
+  }
+  #reservation-table .date-header,
+  #beach-table .date-header {
+    font-size: 5.5pt !important;
+    padding: 1px 0 !important;
+  }
+  #reservation-table .day-number,
+  #beach-table .day-number {
+    font-size: 6pt !important;
+    line-height: 1;
+  }
+  #reservation-table .day-abbr,
+  #beach-table .day-abbr {
+    font-size: 4.5pt !important;
+    line-height: 1;
+  }
+  #reservation-table .room-cell,
+  #beach-table .room-cell {
+    width: 36px !important;
+    max-width: 36px !important;
+    min-width: 36px !important;
+    font-size: 6pt !important;
+    padding: 1px 2px !important;
+  }
+  #reservation-table .floor-header td,
+  #beach-table .floor-header td {
+    font-size: 6pt !important;
+    padding: 1px 4px !important;
+  }
+  #reservation-table .reservation-bar,
+  #beach-table .reservation-bar {
+    box-shadow: none !important;
+    font-size: 5.5pt !important;
+    padding: 0 2px !important;
+  }
+  .reservation-client-name { font-size: 5.5pt !important; }
+  .reservation-price { font-size: 5pt !important; }
+  .reservation-ref { font-size: 5pt !important; padding: 0 3px !important; }
+  .reservation-icon { display: none !important; }
+
+  /* Reservation bars: preserve the flat colors */
   .reservation-bar.reservation-color-yellow { background: #ffd60a !important; }
-  .reservation-bar.reservation-color-blue   { background: #0a84ff !important; }
+  .reservation-bar.reservation-color-blue   { background: #0a84ff !important; color: #000 !important; }
   .reservation-bar.reservation-color-orange { background: #ff9500 !important; }
 
-  /* Make saturday stripes visible in print */
+  /* Saturday stripes visible also under bars */
   .reservation-bg-stripe { background: #c9c9cf !important; }
 
-  /* Header of the section with title */
-  h1, h2, h3, h4 { color: #000 !important; }
-
-  /* Avoid page break inside a row */
+  /* Avoid row breaks */
   tr { page-break-inside: avoid; }
+
+  /* Hide the hidden lists/legacy elements */
+  [hidden], [aria-hidden="true"] { display: none !important; }
 }
