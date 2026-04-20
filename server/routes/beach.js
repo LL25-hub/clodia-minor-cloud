@@ -64,7 +64,7 @@ router.get('/assignments', async (req, res, next) => {
   try {
     let q = supabase
       .from('beach_assignments')
-      .select('*, umbrella:beach_umbrellas(*), reservation:reservations(id,client_id,check_in_date,check_out_date,reservation_color, client:clients(name,phone))');
+      .select('*, umbrella:beach_umbrellas(*), reservation:reservations(id,client_id,check_in_date,check_out_date,reservation_color,deleted, client:clients(name,phone))');
 
     if (req.query.reservation_id) q = q.eq('reservation_id', req.query.reservation_id);
     if (req.query.umbrella_id)    q = q.eq('umbrella_id', req.query.umbrella_id);
@@ -77,7 +77,9 @@ router.get('/assignments', async (req, res, next) => {
     }
     const { data, error } = await q.order('start_date');
     if (error) throw error;
-    res.json(data);
+    // Filter out any assignment whose reservation has been soft-deleted
+    const filtered = (data || []).filter(a => !(a.reservation && a.reservation.deleted === true));
+    res.json(filtered);
   } catch (err) { next(err); }
 });
 

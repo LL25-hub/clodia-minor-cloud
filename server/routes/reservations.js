@@ -247,6 +247,14 @@ router.delete('/:id', async (req, res, next) => {
       .eq('id', req.params.id);
     if (error) throw error;
     if (!count) return res.status(404).json({ error: 'Prenotazione non trovata' });
+
+    // Remove any beach assignment attached to this reservation.
+    // Foreign-key ON DELETE CASCADE only triggers on hard delete, not on
+    // the soft-delete flag, so we do it manually here.
+    try {
+      await supabase.from('beach_assignments').delete().eq('reservation_id', req.params.id);
+    } catch (e) { /* non-blocking */ }
+
     res.json({ message: 'Prenotazione spostata nel cestino' });
   } catch (err) { next(err); }
 });
