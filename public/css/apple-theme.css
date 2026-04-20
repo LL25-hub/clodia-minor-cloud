@@ -2051,7 +2051,8 @@ canvas { background: transparent; }
    Print styles: A4 landscape, whole Registro on a single page
    =========================================================== */
 @media print {
-  @page { size: A4 landscape; margin: 5mm; }
+  @page { size: 297mm 210mm; margin: 5mm; }
+  @page :first { size: 297mm 210mm; margin: 5mm; }
 
   html, body {
     background: #fff !important;
@@ -2306,16 +2307,16 @@ canvas { background: transparent; }
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }
-  /* Column widths: umbrella column + narrow day columns so all 28/30/31 days fit horizontally */
-  body[data-print-target="beach"] .print-beach-table col.col-umbrella { width: 14mm; }
-  body[data-print-target="beach"] .print-beach-table col.col-day { width: 8.5mm; }
-  body[data-print-target="beach"][data-print-mode="2"] .print-beach-table col.col-umbrella { width: 12mm; }
-  body[data-print-target="beach"][data-print-mode="2"] .print-beach-table col.col-day { width: 8.5mm; }
-  /* For months with 28 days, let them stretch a bit more */
-  body[data-print-target="beach"] .print-beach-table[data-days="28"] col.col-day { width: 9.5mm; }
-  body[data-print-target="beach"] .print-beach-table[data-days="29"] col.col-day { width: 9.2mm; }
-  body[data-print-target="beach"] .print-beach-table[data-days="30"] col.col-day { width: 8.9mm; }
-  body[data-print-target="beach"] .print-beach-table[data-days="31"] col.col-day { width: 8.5mm; }
+  /* Column widths expressed in % so the full month fits whatever the
+     actual paper orientation/size. Umbrella col takes ~5% and the rest
+     is evenly split among all the day columns (28/29/30/31). */
+  body[data-print-target="beach"] .print-beach-table col.col-umbrella { width: 5%; }
+  body[data-print-target="beach"] .print-beach-table[data-days="28"] col.col-day { width: calc(95% / 28); }
+  body[data-print-target="beach"] .print-beach-table[data-days="29"] col.col-day { width: calc(95% / 29); }
+  body[data-print-target="beach"] .print-beach-table[data-days="30"] col.col-day { width: calc(95% / 30); }
+  body[data-print-target="beach"] .print-beach-table[data-days="31"] col.col-day { width: calc(95% / 31); }
+  /* Sensible fallback if data-days attribute is missing */
+  body[data-print-target="beach"] .print-beach-table col.col-day { width: auto; }
   body[data-print-target="beach"] .print-month-block {
     flex: 1 1 0;
     min-height: 0;
