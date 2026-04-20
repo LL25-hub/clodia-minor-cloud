@@ -2309,22 +2309,29 @@ canvas { background: transparent; }
   body[data-print-target="beach"] .print-month-block {
     flex: 1 1 0;
     min-height: 0;
-    max-height: calc(50vh - 2mm);
     overflow: hidden;
     display: flex;
     flex-direction: column;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }
+  /* 2-month mode: each block is exactly half the page */
+  body[data-print-target="beach"][data-print-mode="2"] .print-month-block {
+    max-height: calc(50vh - 2mm);
+  }
   body[data-print-target="beach"] .print-month-block__title {
     flex: 0 0 auto;
-    font-size: 10pt;
+    font-size: 12pt;
     font-weight: 700;
     text-align: center;
-    margin: 0 0 1mm 0;
+    margin: 0 0 2mm 0;
     text-transform: capitalize;
     color: #000;
     line-height: 1.1;
+  }
+  body[data-print-target="beach"][data-print-mode="2"] .print-month-block__title {
+    font-size: 10pt;
+    margin: 0 0 1mm 0;
   }
   body[data-print-target="beach"] .print-beach-table {
     flex: 1 1 auto;
@@ -2333,44 +2340,87 @@ canvas { background: transparent; }
     max-height: 100%;
     border-collapse: collapse !important;
     table-layout: fixed !important;
-    font-size: 6.5pt;
+    font-size: 8pt;
     margin: 0 !important;
     overflow: hidden;
   }
+  body[data-print-target="beach"][data-print-mode="2"] .print-beach-table {
+    font-size: 6.5pt;
+  }
   body[data-print-target="beach"] .print-beach-table th,
   body[data-print-target="beach"] .print-beach-table td {
-    padding: 0 1px !important;
+    padding: 1.5mm 1px !important;
     border: 1px solid #bbb !important;
     height: auto;
-    line-height: 1.1;
+    line-height: 1;
+  }
+  body[data-print-target="beach"][data-print-mode="2"] .print-beach-table th,
+  body[data-print-target="beach"][data-print-mode="2"] .print-beach-table td {
+    padding: 0.6mm 1px !important;
   }
   body[data-print-target="beach"] .print-beach-table tbody { height: 100%; }
   body[data-print-target="beach"] .print-beach-table tbody tr { page-break-inside: avoid; break-inside: avoid; }
+
+  /* Date header */
   body[data-print-target="beach"] .print-beach-table .date-header {
-    font-size: 5.5pt !important;
-    padding: 0 !important;
+    font-size: 7pt !important;
+    padding: 0.6mm 0 !important;
     line-height: 1;
   }
+  body[data-print-target="beach"][data-print-mode="2"] .print-beach-table .date-header {
+    font-size: 5.5pt !important;
+    padding: 0.2mm 0 !important;
+  }
   body[data-print-target="beach"] .print-beach-table .day-number {
-    font-size: 6pt !important;
+    font-size: 8pt !important;
     line-height: 1;
     font-weight: 700;
   }
+  body[data-print-target="beach"][data-print-mode="2"] .print-beach-table .day-number {
+    font-size: 6pt !important;
+  }
   body[data-print-target="beach"] .print-beach-table .day-abbr {
-    font-size: 4.5pt !important;
+    font-size: 5.5pt !important;
     line-height: 1;
   }
-  body[data-print-target="beach"] .print-beach-table .room-cell {
-    width: 36px !important;
-    max-width: 36px !important;
-    min-width: 36px !important;
-    font-size: 6pt !important;
+  body[data-print-target="beach"][data-print-mode="2"] .print-beach-table .day-abbr {
+    font-size: 4.5pt !important;
   }
+
+  /* Apartment/umbrella code column: larger and bolder */
+  body[data-print-target="beach"] .print-beach-table .room-cell {
+    width: 44px !important;
+    max-width: 44px !important;
+    min-width: 44px !important;
+    font-size: 10pt !important;
+    font-weight: 700 !important;
+    color: #000 !important;
+    text-align: center;
+    padding: 1.5mm 3px !important;
+  }
+  body[data-print-target="beach"][data-print-mode="2"] .print-beach-table .room-cell {
+    width: 34px !important;
+    max-width: 34px !important;
+    min-width: 34px !important;
+    font-size: 8pt !important;
+    padding: 0.6mm 2px !important;
+  }
+  body[data-print-target="beach"] .print-beach-table .room-cell .room-number {
+    font-size: inherit !important;
+    font-weight: 700 !important;
+  }
+
+  /* Row (file) header */
   body[data-print-target="beach"] .print-beach-table .floor-header td {
-    font-size: 6pt !important;
+    font-size: 8pt !important;
+    font-weight: 700 !important;
     background: #e8e8ed !important;
-    padding: 0 4px !important;
+    padding: 1mm 4px !important;
     line-height: 1.2;
+  }
+  body[data-print-target="beach"][data-print-mode="2"] .print-beach-table .floor-header td {
+    font-size: 6pt !important;
+    padding: 0.4mm 4px !important;
   }
   body[data-print-target="beach"] .print-beach-table .saturday-column {
     background: #d7d7dc !important;

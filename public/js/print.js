@@ -1,14 +1,14 @@
 /* Print helper.
- * - Registro (reservations) prints the active month table at full page height.
- * - Spiaggia (beach) prints TWO months stacked (current + next) on the same
- *   A4 landscape page so the sheet is always filled.
+ *   - Registro: current month fills the A4 landscape page.
+ *   - Spiaggia: two options (1 month full page, or 2 months stacked on 1 page).
+ * Mode is read from the clicked button's data-print-mode attribute ('1' | '2').
  */
 (function () {
-  async function beforePrint(targetId) {
+  async function beforePrint(targetId, mode) {
     document.body.setAttribute('data-print-target', targetId || '');
+    document.body.setAttribute('data-print-mode', mode || '');
 
     if (targetId === 'beach' && typeof window.buildBeachMonthBlock === 'function') {
-      // Build the 2-month print container and append it hidden until print
       const existing = document.getElementById('print-beach-months');
       if (existing) existing.remove();
 
@@ -18,15 +18,17 @@
       const now = new Date();
       const y1 = now.getFullYear();
       const m1 = now.getMonth();
-      const nextDate = new Date(y1, m1 + 1, 1);
-      const y2 = nextDate.getFullYear();
-      const m2 = nextDate.getMonth();
 
       try {
         const b1 = await window.buildBeachMonthBlock(y1, m1);
-        const b2 = await window.buildBeachMonthBlock(y2, m2);
         container.appendChild(b1);
-        container.appendChild(b2);
+
+        if (mode === '2') {
+          const nextDate = new Date(y1, m1 + 1, 1);
+          const b2 = await window.buildBeachMonthBlock(nextDate.getFullYear(), nextDate.getMonth());
+          container.appendChild(b2);
+        }
+
         document.body.appendChild(container);
       } catch (e) {
         console.error('Failed to build beach print view:', e);
@@ -36,19 +38,19 @@
 
   function afterPrint() {
     document.body.removeAttribute('data-print-target');
+    document.body.removeAttribute('data-print-mode');
     const container = document.getElementById('print-beach-months');
     if (container) container.remove();
   }
 
-  async function printSection(targetId) {
+  async function printSection(targetId, mode) {
     try {
       const section = document.getElementById(targetId);
       if (section) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         section.classList.add('active');
       }
-      await beforePrint(targetId);
-      // Small delay to let layout settle
+      await beforePrint(targetId, mode);
       setTimeout(() => window.print(), 80);
     } catch (e) {
       console.error('Print failed:', e);
@@ -59,7 +61,9 @@
     const btn = e.target.closest && e.target.closest('.print-btn');
     if (!btn) return;
     e.preventDefault();
-    printSection(btn.dataset.printSection || '');
+    const section = btn.dataset.printSection || '';
+    const mode = btn.dataset.printMode || '1';
+    printSection(section, mode);
   });
 
   window.addEventListener('afterprint', afterPrint);
