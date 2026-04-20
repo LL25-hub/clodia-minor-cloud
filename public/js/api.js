@@ -32,6 +32,9 @@ async function apiRequest(endpoint, options = {}) {
     options.headers['Cache-Control'] = 'no-cache';
   }
 
+  // Always include the session cookie
+  options.credentials = 'same-origin';
+
   try {
     const response = await fetch(url, options);
     

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#1d1d1f">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Accedi · Clodia Minor</title>
+    <link rel="apple-touch-icon" href="icons/icon.png">
+    <link rel="icon" type="image/png" href="icons/icon.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --ap-bg: #f5f5f7;
+            --ap-surface: #ffffff;
+            --ap-text: #1d1d1f;
+            --ap-text-secondary: #6e6e73;
+            --ap-text-tertiary: #86868b;
+            --ap-separator: rgba(0, 0, 0, 0.08);
+            --ap-separator-strong: rgba(0, 0, 0, 0.12);
+            --ap-accent: #0071e3;
+            --ap-accent-hover: #0077ed;
+            --ap-danger: #ff3b30;
+        }
+        * { box-sizing: border-box; }
+        html, body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background: var(--ap-bg);
+            color: var(--ap-text);
+            -webkit-font-smoothing: antialiased;
+            letter-spacing: -0.003em;
+        }
+        .login-wrap {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            padding-top: calc(24px + env(safe-area-inset-top));
+            padding-bottom: calc(24px + env(safe-area-inset-bottom));
+        }
+        .login-card {
+            width: 100%;
+            max-width: 400px;
+            background: var(--ap-surface);
+            border: 1px solid var(--ap-separator);
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            padding: 40px 32px 32px;
+        }
+        .login-brand {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .login-brand__icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            background: #1d1d1f;
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 14px;
+        }
+        .login-brand__title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin: 0 0 4px;
+        }
+        .login-brand__subtitle {
+            color: var(--ap-text-secondary);
+            font-size: 0.9rem;
+            margin: 0;
+        }
+        .form-group { margin-bottom: 14px; }
+        .form-label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--ap-text-secondary);
+            margin-bottom: 6px;
+        }
+        .input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .input-wrap i {
+            position: absolute;
+            left: 14px;
+            color: var(--ap-text-tertiary);
+            font-size: 0.9rem;
+        }
+        .form-input {
+            width: 100%;
+            height: 48px;
+            padding: 0 14px 0 42px;
+            border: 1px solid var(--ap-separator-strong);
+            border-radius: 12px;
+            background: #fff;
+            color: var(--ap-text);
+            font-size: 16px;
+            font-family: inherit;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+            outline: none;
+        }
+        .form-input:focus {
+            border-color: var(--ap-accent);
+            box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
+        }
+        .toggle-password {
+            position: absolute;
+            right: 8px;
+            background: transparent;
+            border: none;
+            color: var(--ap-text-tertiary);
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .toggle-password:hover { color: var(--ap-text); background: rgba(0,0,0,0.04); }
+        .btn-submit {
+            width: 100%;
+            height: 48px;
+            background: var(--ap-accent);
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.15s ease, transform 0.05s ease;
+            margin-top: 8px;
+        }
+        .btn-submit:hover { background: var(--ap-accent-hover); }
+        .btn-submit:active { transform: scale(0.99); }
+        .btn-submit:disabled { opacity: 0.55; cursor: not-allowed; }
+        .error-msg {
+            min-height: 20px;
+            color: var(--ap-danger);
+            font-size: 0.85rem;
+            text-align: center;
+            margin-top: 14px;
+        }
+        .login-footer {
+            text-align: center;
+            margin-top: 24px;
+            color: var(--ap-text-tertiary);
+            font-size: 0.78rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-wrap">
+        <div class="login-card">
+            <div class="login-brand">
+                <div class="login-brand__icon"><i class="fas fa-key"></i></div>
+                <h1 class="login-brand__title">Clodia Minor</h1>
+                <p class="login-brand__subtitle">Accedi per continuare</p>
+            </div>
+            <form id="login-form" autocomplete="on">
+                <div class="form-group">
+                    <label class="form-label" for="email">Email</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-envelope"></i>
+                        <input class="form-input" type="email" id="email" name="email" required autocomplete="username" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="email@esempio.com">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-lock"></i>
+                        <input class="form-input" type="password" id="password" name="password" required autocomplete="current-password" placeholder="Password">
+                        <button type="button" class="toggle-password" aria-label="Mostra password" id="toggle-password">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="btn-submit" id="submit-btn">Accedi</button>
+                <div class="error-msg" id="error-msg" role="alert" aria-live="polite"></div>
+            </form>
+            <div class="login-footer">© Clodia Minor</div>
+        </div>
+    </div>
+    <script>
+        (function () {
+            const form = document.getElementById('login-form');
+            const emailEl = document.getElementById('email');
+            const pwdEl = document.getElementById('password');
+            const errEl = document.getElementById('error-msg');
+            const btn = document.getElementById('submit-btn');
+            const toggleBtn = document.getElementById('toggle-password');
+
+            toggleBtn.addEventListener('click', function () {
+                const isPassword = pwdEl.type === 'password';
+                pwdEl.type = isPassword ? 'text' : 'password';
+                toggleBtn.querySelector('i').className = isPassword ? 'fas fa-eye-slash' : 'fas fa-eye';
+            });
+
+            // If already logged in, redirect to /
+            fetch('/api/me', { credentials: 'same-origin' })
+                .then(r => { if (r.ok) location.replace('/'); })
+                .catch(() => {});
+
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                errEl.textContent = '';
+                btn.disabled = true;
+                const originalLabel = btn.textContent;
+                btn.textContent = 'Accesso in corso…';
+                try {
+                    const res = await fetch('/api/login', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: emailEl.value.trim(), password: pwdEl.value })
+                    });
+                    if (res.ok) {
+                        const params = new URLSearchParams(location.search);
+                        const next = params.get('next') || '/';
+                        location.replace(next);
+                        return;
+                    }
+                    let msg = 'Credenziali non valide';
+                    try { const data = await res.json(); if (data && data.error) msg = data.error; } catch (_) {}
+                    errEl.textContent = msg;
+                } catch (err) {
+                    errEl.textContent = 'Errore di rete. Riprova.';
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = originalLabel;
+                }
+            });
+        })();
+    </script>
+</body>
+</html>
