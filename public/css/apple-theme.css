@@ -2056,6 +2056,9 @@ canvas { background: transparent; }
   html, body {
     background: #fff !important;
     color: #000 !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
@@ -2087,19 +2090,26 @@ canvas { background: transparent; }
     display: none !important;
   }
 
-  #wrapper { display: block !important; }
-  #page-content-wrapper { min-width: 0 !important; width: 100% !important; }
-  .container-fluid { padding: 0 !important; max-width: none !important; }
+  #wrapper { display: block !important; height: 100% !important; }
+  #page-content-wrapper { min-width: 0 !important; width: 100% !important; height: 100% !important; }
+  .container-fluid { padding: 0 !important; max-width: none !important; height: 100% !important; }
 
-  /* Only the active section prints */
+  /* Only the active section prints; make it a flex column that fills the page */
   .section { display: none !important; }
-  .section.active { display: block !important; }
+  .section.active {
+    display: flex !important;
+    flex-direction: column;
+    height: 100vh !important;
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+  }
 
   /* Header: show only the period badge (e.g. "Aprile 2026") */
   .section.active > .d-flex {
     display: block !important;
     margin: 0 0 3mm 0 !important;
     padding: 0 !important;
+    flex: 0 0 auto;
   }
   .section.active > .d-flex h4 { display: none !important; }
   .section.active > .d-flex > div { width: 100% !important; text-align: center; }
@@ -2120,17 +2130,44 @@ canvas { background: transparent; }
     border: none !important;
   }
 
-  /* Card wrapper shouldn't eat space */
-  .card { border: none !important; box-shadow: none !important; }
-  .card-body { padding: 0 !important; }
+  /* Card wrapper shouldn't eat space; make it fill the remaining height */
+  .section.active .card {
+    border: none !important;
+    box-shadow: none !important;
+    flex: 1 1 auto;
+    display: flex !important;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .section.active .card-body {
+    padding: 0 !important;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .section.active .table-responsive {
+    flex: 1 1 auto;
+    overflow: visible !important;
+    min-height: 0;
+  }
 
-  /* Everything scaled down to fit the whole month in one page */
+  /* Scale the table to exactly fill the remaining page height */
   #reservation-table,
   #beach-table {
     font-size: 6pt !important;
     border-collapse: collapse !important;
     table-layout: fixed !important;
     width: 100% !important;
+    height: 100% !important;
+  }
+  #reservation-table tbody,
+  #beach-table tbody {
+    height: 100%;
+  }
+  #reservation-table tbody tr,
+  #beach-table tbody tr {
+    height: auto;
   }
   #reservation-table th,
   #reservation-table td,
