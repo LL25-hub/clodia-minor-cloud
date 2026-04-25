@@ -305,7 +305,8 @@
       li.appendChild(cta);
 
       li.addEventListener('click', function () {
-        if (typeof window.editReservation === 'function') window.editReservation(r.id);
+        if (typeof window.openBeachAssignModal === 'function') window.openBeachAssignModal(r);
+        else if (typeof window.editReservation === 'function') window.editReservation(r.id);
       });
       listEl.appendChild(li);
     });
@@ -468,10 +469,8 @@
   document.addEventListener('DOMContentLoaded', function () {
     const prev = $('beach-prev-month');
     const next = $('beach-next-month');
-    const today = $('beach-today-btn');
     if (prev) prev.addEventListener('click', () => goToMonth(state.year, state.month - 1));
     if (next) next.addEventListener('click', () => goToMonth(state.year, state.month + 1));
-    if (today) today.addEventListener('click', () => goToday());
 
     // Refresh when a reservation is saved (cache invalidation signal)
     document.addEventListener('beach-data-invalidated', function () {

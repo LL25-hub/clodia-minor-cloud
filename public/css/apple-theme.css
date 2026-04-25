@@ -517,6 +517,35 @@ td.reservation-cell {
   color: #111 !important;
 }
 
+/* Cross-month indicators: a reservation extending from previous / into next
+   month shows a chevron at the corresponding edge. */
+.reservation-bar.bar-from-prev {
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+}
+.reservation-bar.bar-to-next {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+.reservation-cross {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.18);
+  color: #111 !important;
+  border-radius: 3px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  z-index: 3;
+}
+.reservation-cross--left { left: 2px; }
+.reservation-cross--right { right: 2px; }
+
 /* Reservation bar: body grouped at center (ref + name + price stick together),
    right icons pinned to the far right. */
 .reservation-bar {
@@ -961,6 +990,23 @@ canvas { background: transparent; }
   color: var(--ap-text-tertiary);
   font-style: italic;
 }
+
+.client-card__edit {
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ap-text-secondary);
+  border: 1px solid var(--ap-separator);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.client-card__edit:hover { background: var(--ap-bg); color: var(--ap-text); }
 
 .client-card__call {
   flex: 0 0 44px;
@@ -2223,12 +2269,35 @@ canvas { background: transparent; }
   #reservation-table .reservation-bar,
   #beach-table .reservation-bar {
     box-shadow: none !important;
-    font-size: 5.5pt !important;
-    padding: 0 2px !important;
+    font-size: 9pt !important;
+    padding: 0 4px !important;
   }
-  .reservation-client-name { font-size: 5.5pt !important; }
-  .reservation-price { font-size: 5pt !important; }
-  .reservation-ref { font-size: 5pt !important; padding: 0 3px !important; }
+  /* Print: reservation labels — big, bold, pure black */
+  #reservation-table .reservation-bar .reservation-client-name,
+  #beach-table .reservation-bar .reservation-client-name {
+    font-size: 9pt !important;
+    font-weight: 700 !important;
+    color: #000 !important;
+    letter-spacing: 0.005em;
+  }
+  #reservation-table .reservation-bar .reservation-price,
+  #beach-table .reservation-bar .reservation-price {
+    font-size: 9pt !important;
+    font-weight: 700 !important;
+    color: #000 !important;
+  }
+  #reservation-table .reservation-bar .reservation-ref,
+  #beach-table .reservation-bar .reservation-ref {
+    font-size: 8pt !important;
+    font-weight: 700 !important;
+    color: #000 !important;
+    background: rgba(0,0,0,0.12) !important;
+    padding: 1px 5px !important;
+  }
+  #reservation-table .reservation-bar .reservation-body,
+  #beach-table .reservation-bar .reservation-body {
+    gap: 6px;
+  }
   .reservation-icon { display: none !important; }
 
   /* Reservation bars in print — high-specificity to beat apple-theme rules.

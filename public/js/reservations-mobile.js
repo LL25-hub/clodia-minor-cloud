@@ -104,6 +104,14 @@
     header.appendChild(people);
     card.appendChild(header);
 
+    // Phone (tappable on mobile)
+    if (reservation.client_phone && reservation.client_phone !== '-' && reservation.client_phone !== '--') {
+      const phoneRow = createEl('div', 'r-card__phone');
+      const tel = String(reservation.client_phone).replace(/[^0-9+]/g, '');
+      phoneRow.innerHTML = '<i class="fas fa-phone"></i> <a href="tel:' + tel + '" onclick="event.stopPropagation()">' + escapeHTML(reservation.client_phone) + '</a>';
+      card.appendChild(phoneRow);
+    }
+
     // Meta: apartment + dates
     const meta = createEl('div', 'r-card__meta');
     const apt = createEl('span', 'r-card__apt');
@@ -260,10 +268,16 @@
       visible.forEach(function (r) { grid.appendChild(buildCard(r)); });
       container.appendChild(grid);
     } else {
+      const isSearching = !!(clientFilterText || roomFilterText);
       renderSection(container, 'In corso', groups.active);
       renderSection(container, 'Questa settimana', groups.soon);
       renderSection(container, 'Prossime', groups.future);
-      renderSection(container, 'Storico', groups.past);
+      // Storico (passate) is hidden by default; only shown when the user
+      // is actively searching by client/apartment so old data doesn't
+      // clutter the page.
+      if (isSearching) {
+        renderSection(container, 'Storico', groups.past);
+      }
     }
 
     updateStats();

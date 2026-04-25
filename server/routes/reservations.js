@@ -12,6 +12,27 @@ function sanitizePhone(raw) {
   return cleaned || null;
 }
 
+// If a reference is a short numeric date without a year (e.g. "5/05" or "12-7"),
+// append the year of the reservation's created_at so it reads as a full date.
+function normalizeReference(reference, createdAt) {
+  if (!reference) return reference;
+  const s = String(reference).trim();
+  // Already has a 4-digit year? Leave it.
+  if (/\d{4}/.test(s)) return s;
+  // Pure short date like "12/07" or "12-7" or "12.7"?
+  if (/^\d{1,2}[\/\-.]\d{1,2}$/.test(s) && createdAt) {
+    const year = new Date(createdAt).getFullYear();
+    if (year && !isNaN(year)) return s + '/' + year;
+  }
+  return s;
+}
+
+function applyReferenceYear(reservation) {
+  if (!reservation) return reservation;
+  reservation.reference = normalizeReference(reservation.reference, reservation.created_at);
+  return reservation;
+}
+
 // Helper: expand Supabase row with flat client/room fields
 function flattenReservation(row) {
   if (!row) return row;
@@ -51,7 +72,7 @@ router.get('/', async (req, res, next) => {
       .eq('deleted', false)
       .order('check_in_date');
     if (error) throw error;
-    res.json(data.map(flattenReservation));
+    res.json(data.map(r => applyReferenceYear(flattenReservation(r))));
   } catch (err) { next(err); }
 });
 
@@ -64,7 +85,7 @@ router.get('/trash', async (req, res, next) => {
       .eq('deleted', true)
       .order('deleted_at', { ascending: false });
     if (error) throw error;
-    res.json(data.map(flattenReservation));
+    res.json(data.map(r => applyReferenceYear(flattenReservation(r))));
   } catch (err) { next(err); }
 });
 

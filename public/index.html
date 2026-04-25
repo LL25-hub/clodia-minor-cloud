@@ -69,6 +69,7 @@
     <script src="js/beach.js" defer></script>
     <script src="js/reservation-beach.js" defer></script>
     <script src="js/print.js" defer></script>
+    <script src="js/beach-assign-modal.js" defer></script>
 </head>
 <body>
 <!-- Auth splash: shown until the guard verifies the session (prevents FOUC) -->
@@ -353,13 +354,6 @@
                                 <input type="search" id="history-room-search" class="search-field__input" placeholder="Cerca appartamento..." autocomplete="off" spellcheck="false">
                             </div>
                         </div>
-                        <div class="reservations-toolbar__chips" role="tablist" aria-label="Filtro per stato">
-                            <button type="button" class="chip-filter is-active" data-filter="all" role="tab" aria-selected="true">Tutte</button>
-                            <button type="button" class="chip-filter" data-filter="active" role="tab" aria-selected="false">In corso</button>
-                            <button type="button" class="chip-filter" data-filter="soon" role="tab" aria-selected="false">Imminenti</button>
-                            <button type="button" class="chip-filter" data-filter="future" role="tab" aria-selected="false">Future</button>
-                            <button type="button" class="chip-filter" data-filter="past" role="tab" aria-selected="false">Passate</button>
-                        </div>
                     </div>
 
                     <!-- Card list -->
@@ -375,7 +369,7 @@
                 </div>
             </div>
 
-            <!-- Beach Section (Spiaggia) — monthly calendar like Registro -->
+            <!-- Beach Section (Spiaggia) — monthly calendar, same layout as Registro -->
             <div class="section" id="beach">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <div>
@@ -386,7 +380,6 @@
                         <button class="btn btn-sm btn-outline-secondary" id="beach-prev-month" aria-label="Mese precedente">
                             <i class="fas fa-chevron-left"></i>
                         </button>
-                        <button class="btn btn-sm btn-outline-secondary" id="beach-today-btn">Oggi</button>
                         <button class="btn btn-sm btn-outline-secondary" id="beach-next-month" aria-label="Mese successivo">
                             <i class="fas fa-chevron-right"></i>
                         </button>
@@ -400,6 +393,28 @@
                                 title="Stampa mese corrente + mese successivo nella stessa pagina">
                             <i class="fas fa-print me-1"></i> 2 mesi
                         </button>
+                    </div>
+                </div>
+
+                <div class="reservation-legend mb-3">
+                    <div class="card border-light">
+                        <div class="card-body p-2">
+                            <div class="d-flex align-items-center flex-wrap gap-3">
+                                <span class="legend-title fw-bold small">Legenda:</span>
+                                <div class="legend-item d-flex align-items-center">
+                                    <span class="legend-color reservation-color-yellow me-1" style="width:22px;height:12px;display:inline-block;border-radius:3px;"></span>
+                                    <span class="small">Confermato</span>
+                                </div>
+                                <div class="legend-item d-flex align-items-center">
+                                    <span class="legend-color reservation-color-blue me-1" style="width:22px;height:12px;display:inline-block;border-radius:3px;"></span>
+                                    <span class="small">Informazione</span>
+                                </div>
+                                <div class="legend-item d-flex align-items-center">
+                                    <span class="legend-color reservation-color-orange me-1" style="width:22px;height:12px;display:inline-block;border-radius:3px;"></span>
+                                    <span class="small">In attesa di conferma</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -745,7 +760,7 @@
                             <label for="reference" class="form-label small fw-bold mb-1">Riferimento Cliente</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fas fa-tag"></i></span>
-                                <input type="text" class="form-control" id="reference" placeholder="Es. Booking.com, Airbnb, Consigliato da...">
+                                <input type="text" class="form-control" id="reference" readonly placeholder="Tocca per scegliere la data del riferimento" autocomplete="off">
                             </div>
                         </div>
                         
@@ -819,6 +834,71 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">Annulla</button>
                 <button type="button" class="btn btn-primary" id="save-apartment">Aggiungi Appartamento</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Client Modal -->
+<div class="modal fade" id="edit-client-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Modifica cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="edit-client-id">
+                <div class="mb-3">
+                    <label for="edit-client-name" class="form-label">Nome</label>
+                    <input type="text" class="form-control" id="edit-client-name" required>
+                </div>
+                <div class="mb-3">
+                    <label for="edit-client-phone" class="form-label">Telefono</label>
+                    <input type="tel" class="form-control" id="edit-client-phone" inputmode="tel">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Annulla</button>
+                <button type="button" class="btn btn-primary" id="save-edit-client">Salva</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Beach Assign Modal (mobile-friendly, dedicated) -->
+<div class="modal fade" id="beach-assign-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-umbrella-beach me-2"></i>Assegna ombrellone</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="beach-assign-reservation-id">
+                <div class="mb-2 small text-muted" id="beach-assign-summary">—</div>
+                <div class="mb-3">
+                    <label for="beach-assign-umbrella" class="form-label">Ombrellone</label>
+                    <select id="beach-assign-umbrella" class="form-select form-select-lg">
+                        <option value="">— Seleziona —</option>
+                    </select>
+                </div>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label for="beach-assign-start" class="form-label">Dal</label>
+                        <input type="date" id="beach-assign-start" class="form-control form-control-lg">
+                    </div>
+                    <div class="col-6">
+                        <label for="beach-assign-end" class="form-label">Al</label>
+                        <input type="date" id="beach-assign-end" class="form-control form-control-lg">
+                    </div>
+                </div>
+                <div class="form-text small mt-2" id="beach-assign-help">&nbsp;</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Annulla</button>
+                <button type="button" class="btn btn-danger" id="beach-assign-clear" hidden>Rimuovi</button>
+                <button type="button" class="btn btn-primary" id="beach-assign-save">Assegna</button>
             </div>
         </div>
     </div>

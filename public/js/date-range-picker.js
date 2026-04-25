@@ -23,6 +23,7 @@
     if (typeof flatpickr === 'undefined') {
       return setTimeout(init, 100);
     }
+    initReferencePicker();
     const triggerInput = document.getElementById('available-range');
     if (!triggerInput) return;
 
@@ -66,6 +67,20 @@
         if (e.target !== triggerInput) fp.open();
       });
     }
+  }
+
+  // Reference (single-day date picker) inside the reservation modal.
+  function initReferencePicker() {
+    const ref = document.getElementById('reference');
+    if (!ref || ref.dataset.fpBound === '1') return;
+    ref.dataset.fpBound = '1';
+    const locale = (typeof flatpickr !== 'undefined' && flatpickr.l10ns && flatpickr.l10ns.it) ? flatpickr.l10ns.it : null;
+    flatpickr(ref, {
+      dateFormat: 'd/m/Y',
+      allowInput: false,
+      locale: locale || undefined,
+      disableMobile: true
+    });
   }
 
   document.addEventListener('DOMContentLoaded', init);
