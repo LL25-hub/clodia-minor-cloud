@@ -630,6 +630,22 @@ td.reservation-cell {
   padding: 0 !important;
 }
 
+/* Width-tier visibility: drop icons before the price, drop price before the
+   client name. Priority order on narrow bars: name > price > icons. */
+.reservation-cell.cell-hide-icons .reservation-bar .reservation-right {
+  display: none !important;
+  padding: 0 !important;
+}
+.reservation-cell.cell-hide-price .reservation-bar .reservation-price,
+.reservation-cell.cell-hide-price .reservation-bar .reservation-ref {
+  display: none !important;
+}
+.reservation-cell.cell-name-only .reservation-bar .reservation-ref,
+.reservation-cell.cell-name-only .reservation-bar .reservation-price,
+.reservation-cell.cell-name-only .reservation-bar .reservation-right {
+  display: none !important;
+}
+
 /* Icon chips: slightly darker translucent background so they stay visible
    on every bar color, but still show a black glyph */
 .reservation-color-yellow .reservation-icon,

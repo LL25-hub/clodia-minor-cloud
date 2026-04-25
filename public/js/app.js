@@ -1134,6 +1134,11 @@ function updateReservationTable(rooms, reservations, dates) {
               cell.className = 'reservation-cell';
               // Used by CSS so the bar can extend by half-cell on each side
               cell.style.setProperty('--cols', colSpan);
+              // Visibility tiers based on how many days the bar covers.
+              // Priority order in narrow bars: name > price > icons.
+              if (colSpan <= 5) cell.classList.add('cell-hide-icons');
+              if (colSpan <= 2) cell.classList.add('cell-hide-price');
+              if (colSpan <= 1) cell.classList.add('cell-name-only');
 
               // Verifica se include sabato per colorare lo sfondo
               const saturdayIndicesInSpan = [];
