@@ -517,30 +517,24 @@ td.reservation-cell {
   color: #111 !important;
 }
 
-/* Cross-month indicators: a small detached colored stub appears at the
-   edge of the bar to signal "this reservation continues past the current
-   month view". Same color as the main bar, separated by a tiny gap. */
-.reservation-bar.bar-from-prev::before,
-.reservation-bar.bar-to-next::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 8px;
-  border-radius: 5px;
-  z-index: 1;
-  pointer-events: none;
+/* Cross-month indicators: when a reservation extends from a previous month
+   the bar must FULLY cover the first cell of the visible month (no half-cell
+   gap on the left). Same for reservations continuing into the next month
+   on the right edge. The squared corners signal "continues outside view". */
+#reservation-table .reservation-cell .reservation-bar.bar-from-prev,
+.reservation-cell .reservation-bar.bar-from-prev,
+#beach-table .reservation-cell .reservation-bar.bar-from-prev {
+  left: 0 !important;
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
 }
-.reservation-bar.bar-from-prev::before { left: -12px; }
-.reservation-bar.bar-to-next::after   { right: -12px; }
-
-/* Color the stubs to match each bar variant */
-.reservation-bar.reservation-color-yellow.bar-from-prev::before,
-.reservation-bar.reservation-color-yellow.bar-to-next::after  { background: #ffd60a; }
-.reservation-bar.reservation-color-blue.bar-from-prev::before,
-.reservation-bar.reservation-color-blue.bar-to-next::after    { background: #0a84ff; }
-.reservation-bar.reservation-color-orange.bar-from-prev::before,
-.reservation-bar.reservation-color-orange.bar-to-next::after  { background: #ff9500; }
+#reservation-table .reservation-cell .reservation-bar.bar-to-next,
+.reservation-cell .reservation-bar.bar-to-next,
+#beach-table .reservation-cell .reservation-bar.bar-to-next {
+  right: 0 !important;
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
 
 /* Reservation bar: body grouped at center (ref + name + price stick together),
    right icons pinned to the far right. */
@@ -595,9 +589,31 @@ td.reservation-cell {
 }
 .reservation-bar .reservation-client-name {
   overflow: hidden;
-  text-overflow: ellipsis;
+  text-overflow: clip; /* no "..." — prefer to clip the trailing letters */
   white-space: nowrap;
   max-width: 100%;
+}
+/* Priority on narrow bars:
+   - the client name (.reservation-center) NEVER shrinks
+   - reference and price shrink first; if there's no room they get clipped */
+.reservation-bar .reservation-center {
+  flex: 0 1 auto !important;
+  min-width: 0;
+  order: 2; /* keep name in the middle visually */
+}
+.reservation-bar .reservation-ref {
+  flex: 0 1 auto;
+  min-width: 0;
+  order: 1;
+  overflow: hidden;
+  text-overflow: clip;
+}
+.reservation-bar .reservation-price {
+  flex: 0 1 auto;
+  min-width: 0;
+  order: 3;
+  overflow: hidden;
+  text-overflow: clip;
 }
 
 .reservation-bar .reservation-right {
