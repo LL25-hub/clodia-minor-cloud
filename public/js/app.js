@@ -268,6 +268,8 @@ function initNavigation() {
             // Clients section is search-driven, no bulk preload
             if (typeof window.loadClients === 'function') window.loadClients();
           } else if (targetSection === 'history') {
+            // Always refresh: the new view fetches via shared cache (instant when fresh).
+            if (typeof window.refreshReservationsView === 'function') window.refreshReservationsView();
             if (shouldReload('history')) { loadReservationsHistory(); markLoaded('history'); }
           } else if (targetSection === 'add-rooms') {
             if (shouldReload('add-rooms')) { loadRooms(); markLoaded('add-rooms'); }

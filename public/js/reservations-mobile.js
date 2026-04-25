@@ -340,6 +340,39 @@
     };
   }
 
+  // Independent refresh — fetches reservations and renders cards directly.
+  // Used by the navigation handler so the page is never left empty even if
+  // the legacy updateReservationsHistory chain doesn't run for any reason.
+  window.refreshReservationsView = async function () {
+    try {
+      // Show a quick loading state
+      const container = document.getElementById('reservations-card-view');
+      if (container && !lastReservations.length) {
+        container.innerHTML = '<div class="r-cards-empty">Caricamento…</div>';
+      }
+      let reservations;
+      const cache = window.__dataCache;
+      const fresh = cache && cache.reservations && (Date.now() - (cache.at || 0)) < 60 * 1000;
+      if (fresh) {
+        reservations = cache.reservations;
+      } else if (window.api && window.api.reservations && typeof window.api.reservations.getAll === 'function') {
+        reservations = await window.api.reservations.getAll();
+        if (window.__dataCache) {
+          window.__dataCache.reservations = reservations;
+          window.__dataCache.at = Date.now();
+        }
+      }
+      if (Array.isArray(reservations)) {
+        lastReservations = reservations.filter(r => !r.deleted);
+        renderCards();
+      }
+    } catch (err) {
+      console.error('refreshReservationsView failed:', err);
+      const container = document.getElementById('reservations-card-view');
+      if (container) container.innerHTML = '<div class="r-cards-empty">Errore di caricamento</div>';
+    }
+  };
+
   document.addEventListener('DOMContentLoaded', function () {
     wireFilters();
     installWrapper();
