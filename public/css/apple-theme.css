@@ -517,34 +517,30 @@ td.reservation-cell {
   color: #111 !important;
 }
 
-/* Cross-month indicators: a reservation extending from previous / into next
-   month shows a chevron at the corresponding edge. */
-.reservation-bar.bar-from-prev {
-  border-top-left-radius: 0 !important;
-  border-bottom-left-radius: 0 !important;
-}
-.reservation-bar.bar-to-next {
-  border-top-right-radius: 0 !important;
-  border-bottom-right-radius: 0 !important;
-}
-.reservation-cross {
+/* Cross-month indicators: a small detached colored stub appears at the
+   edge of the bar to signal "this reservation continues past the current
+   month view". Same color as the main bar, separated by a tiny gap. */
+.reservation-bar.bar-from-prev::before,
+.reservation-bar.bar-to-next::after {
+  content: '';
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 14px;
-  height: 18px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.18);
-  color: #111 !important;
-  border-radius: 3px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  z-index: 3;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  border-radius: 5px;
+  z-index: 1;
+  pointer-events: none;
 }
-.reservation-cross--left { left: 2px; }
-.reservation-cross--right { right: 2px; }
+.reservation-bar.bar-from-prev::before { left: -12px; }
+.reservation-bar.bar-to-next::after   { right: -12px; }
+
+/* Color the stubs to match each bar variant */
+.reservation-bar.reservation-color-yellow.bar-from-prev::before,
+.reservation-bar.reservation-color-yellow.bar-to-next::after  { background: #ffd60a; }
+.reservation-bar.reservation-color-blue.bar-from-prev::before,
+.reservation-bar.reservation-color-blue.bar-to-next::after    { background: #0a84ff; }
+.reservation-bar.reservation-color-orange.bar-from-prev::before,
+.reservation-bar.reservation-color-orange.bar-to-next::after  { background: #ff9500; }
 
 /* Reservation bar: body grouped at center (ref + name + price stick together),
    right icons pinned to the far right. */

@@ -1222,7 +1222,6 @@ function updateReservationTable(rooms, reservations, dates) {
     data-bs-toggle="tooltip"
     data-bs-html="true"
     data-bs-title="${tooltipContent}">
-    ${fromPrev ? '<span class="reservation-cross reservation-cross--left" aria-hidden="true"><i class="fas fa-angle-left"></i></span>' : ''}
     <div class="reservation-body">
       ${refText ? `<div class="reservation-ref">${refText}</div>` : ''}
       <div class="reservation-center">
@@ -1230,7 +1229,6 @@ function updateReservationTable(rooms, reservations, dates) {
       </div>
       ${priceText ? `<div class="reservation-price">${priceText}</div>` : ''}
     </div>
-    ${toNext ? '<span class="reservation-cross reservation-cross--right" aria-hidden="true"><i class="fas fa-angle-right"></i></span>' : ''}
     <div class="reservation-right">
       ${currentReservation.has_beach == 1 ? '<span class="reservation-icon"><i class="fas fa-umbrella-beach"></i></span>' : ''}
       ${currentReservation.is_paid == 1 ? '<span class="reservation-icon"><i class="fas fa-check-circle"></i></span>' : ''}

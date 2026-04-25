@@ -269,13 +269,14 @@
       container.appendChild(grid);
     } else {
       const isSearching = !!(clientFilterText || roomFilterText);
+      const hasNonPast = groups.active.length || groups.soon.length || groups.future.length;
       renderSection(container, 'In corso', groups.active);
       renderSection(container, 'Questa settimana', groups.soon);
       renderSection(container, 'Prossime', groups.future);
-      // Storico (passate) is hidden by default; only shown when the user
-      // is actively searching by client/apartment so old data doesn't
-      // clutter the page.
-      if (isSearching) {
+      // Storico (passate) is hidden by default; only shown when:
+      //  - the user is actively searching by client/apartment, OR
+      //  - there are no current/upcoming reservations (else the page would be empty)
+      if (isSearching || !hasNonPast) {
         renderSection(container, 'Storico', groups.past);
       }
     }
