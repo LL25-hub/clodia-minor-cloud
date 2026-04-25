@@ -83,5 +83,61 @@
     });
   }
 
-  document.addEventListener('DOMContentLoaded', init);
+  // Check-in / Check-out date pickers inside the reservation modal.
+  // Replace the native HTML date input with a styled Flatpickr that opens
+  // a calendar on tap (works the same on desktop and mobile).
+  function initReservationDatePickers() {
+    const ci = document.getElementById('check-in-date');
+    const co = document.getElementById('check-out-date');
+    if (!ci || !co) return;
+    if (ci.dataset.fpBound === '1' && co.dataset.fpBound === '1') return;
+    const locale = (typeof flatpickr !== 'undefined' && flatpickr.l10ns && flatpickr.l10ns.it) ? flatpickr.l10ns.it : null;
+
+    // Flatpickr requires plain text inputs to overlay nicely; force type=text
+    if (ci.type === 'date') ci.type = 'text';
+    if (co.type === 'date') co.type = 'text';
+
+    const fpCi = flatpickr(ci, {
+      dateFormat: 'Y-m-d',
+      altInput: true,
+      altFormat: 'd/m/Y',
+      locale: locale || undefined,
+      disableMobile: true,
+      allowInput: false,
+      onChange: function (selected) {
+        if (!selected.length) return;
+        // Make sure check-out is at least 1 day later
+        const ciDate = selected[0];
+        if (fpCo) {
+          fpCo.set('minDate', ciDate);
+          const co = document.getElementById('check-out-date');
+          if (!co.value || new Date(co.value) <= ciDate) {
+            const nd = new Date(ciDate); nd.setDate(nd.getDate() + 1);
+            fpCo.setDate(nd, true);
+          }
+        }
+      }
+    });
+    ci.dataset.fpBound = '1';
+
+    const fpCo = flatpickr(co, {
+      dateFormat: 'Y-m-d',
+      altInput: true,
+      altFormat: 'd/m/Y',
+      locale: locale || undefined,
+      disableMobile: true,
+      allowInput: false
+    });
+    co.dataset.fpBound = '1';
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    init();
+    initReservationDatePickers();
+  });
+  // Re-init when the reservation modal is shown (in case Flatpickr lost binding)
+  document.addEventListener('shown.bs.modal', function (e) {
+    if (!e || !e.target) return;
+    if (e.target.id === 'reservation-modal') initReservationDatePickers();
+  });
 })();

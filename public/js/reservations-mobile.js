@@ -268,11 +268,16 @@
       visible.forEach(function (r) { grid.appendChild(buildCard(r)); });
       container.appendChild(grid);
     } else {
-      // Show ALL groups by default — no need for the user to search.
+      const isSearching = !!(clientFilterText || roomFilterText);
+      const hasNonPast = groups.active.length || groups.soon.length || groups.future.length;
       renderSection(container, 'In corso', groups.active);
       renderSection(container, 'Questa settimana', groups.soon);
       renderSection(container, 'Prossime', groups.future);
-      renderSection(container, 'Storico', groups.past);
+      // Storico hidden by default; shown only when the user is searching,
+      // or as a fallback if no current/upcoming reservations exist.
+      if (isSearching || !hasNonPast) {
+        renderSection(container, 'Storico', groups.past);
+      }
     }
 
     updateStats();
