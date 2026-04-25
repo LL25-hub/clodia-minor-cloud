@@ -1134,18 +1134,16 @@ function updateReservationTable(rooms, reservations, dates) {
               cell.className = 'reservation-cell';
               // Used by CSS so the bar can extend by half-cell on each side
               cell.style.setProperty('--cols', colSpan);
-              // Visibility tiers based on how many days the bar covers.
-              // Priority order in narrow bars: name > price > ref > icons.
-              // Compute how many "rich" labels are shown so we can drop icons
-              // whenever there's not enough room for them next to the price.
-              const hasRef = !!refText;
-              const hasPrice = estimateValue > 0;
+              // Pre-compute the texts so we can decide which labels fit.
+              const _refText = currentReservation.reference ? String(currentReservation.reference).trim() : '';
+              const _estimateValue = parseFloat(currentReservation.estimate_amount) || 0;
+              const hasRef = !!_refText;
+              const hasPrice = _estimateValue > 0;
               const hasAnyIcon =
                 currentReservation.has_beach == 1 ||
                 currentReservation.is_paid == 1 ||
                 (currentReservation.has_deposit == 1 && currentReservation.is_paid != 1);
-
-              // Heuristic: each label needs roughly 4 day-cells of width to fit.
+              // Heuristic: each label needs roughly 3 day-cells of width to fit.
               // Threshold below which we hide the icons so they don't overlap text.
               const labelsCount = 1 /* name */ + (hasRef ? 1 : 0) + (hasPrice ? 1 : 0);
               const iconsThreshold = hasAnyIcon ? Math.max(7, labelsCount * 3 + 1) : 0;
