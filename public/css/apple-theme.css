@@ -630,14 +630,16 @@ td.reservation-cell {
   padding: 0 !important;
 }
 
-/* Width-tier visibility: drop icons before the price, drop price before the
-   client name. Priority order on narrow bars: name > price > icons. */
+/* Width-tier visibility: drop icons → ref → price → keep only the name.
+   Priority order on narrow bars: name > price > ref > icons. */
 .reservation-cell.cell-hide-icons .reservation-bar .reservation-right {
   display: none !important;
   padding: 0 !important;
 }
-.reservation-cell.cell-hide-price .reservation-bar .reservation-price,
-.reservation-cell.cell-hide-price .reservation-bar .reservation-ref {
+.reservation-cell.cell-hide-ref .reservation-bar .reservation-ref {
+  display: none !important;
+}
+.reservation-cell.cell-hide-price .reservation-bar .reservation-price {
   display: none !important;
 }
 .reservation-cell.cell-name-only .reservation-bar .reservation-ref,
