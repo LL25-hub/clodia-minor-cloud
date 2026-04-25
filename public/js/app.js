@@ -1216,6 +1216,14 @@ function updateReservationTable(rooms, reservations, dates) {
                 (fromPrev ? ' bar-from-prev' : '') +
                 (toNext ? ' bar-to-next' : '');
 
+              // Build the right-side icons block only when at least one icon is needed
+              const iconHtml = [
+                currentReservation.has_beach == 1 ? '<span class="reservation-icon"><i class="fas fa-umbrella-beach"></i></span>' : '',
+                currentReservation.is_paid == 1 ? '<span class="reservation-icon"><i class="fas fa-check-circle"></i></span>' : '',
+                (currentReservation.has_deposit == 1 && currentReservation.is_paid != 1) ? '<span class="reservation-icon"><i class="fas fa-coins"></i></span>' : ''
+              ].filter(Boolean).join('');
+              const rightHtml = iconHtml ? `<div class="reservation-right">${iconHtml}</div>` : '';
+
               cell.innerHTML = `
   <div class="reservation-bar${crossClass}"
     data-reservation-id="${currentReservation.id}"
@@ -1229,11 +1237,7 @@ function updateReservationTable(rooms, reservations, dates) {
       </div>
       ${priceText ? `<div class="reservation-price">${priceText}</div>` : ''}
     </div>
-    <div class="reservation-right">
-      ${currentReservation.has_beach == 1 ? '<span class="reservation-icon"><i class="fas fa-umbrella-beach"></i></span>' : ''}
-      ${currentReservation.is_paid == 1 ? '<span class="reservation-icon"><i class="fas fa-check-circle"></i></span>' : ''}
-      ${currentReservation.has_deposit == 1 && currentReservation.is_paid != 1 ? '<span class="reservation-icon"><i class="fas fa-coins"></i></span>' : ''}
-    </div>
+    ${rightHtml}
   </div>
 `;
               // Aggiungi evento click per modifica

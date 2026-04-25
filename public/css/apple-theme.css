@@ -623,6 +623,12 @@ td.reservation-cell {
   gap: 4px;
   padding-left: 6px;
 }
+/* Collapse the right-icons container completely when it has no icons */
+.reservation-bar .reservation-right:empty,
+.reservation-bar .reservation-right:not(:has(*)) {
+  display: none !important;
+  padding: 0 !important;
+}
 
 /* Icon chips: slightly darker translucent background so they stay visible
    on every bar color, but still show a black glyph */
