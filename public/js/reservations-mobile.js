@@ -73,6 +73,12 @@
     return el;
   }
 
+  function escapeHTML(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[m]));
+  }
+
   function createIconBadge(iconClass, text, variant) {
     const span = createEl('span', 'r-badge r-badge-' + (variant || 'default'));
     const i = createEl('i', iconClass);
