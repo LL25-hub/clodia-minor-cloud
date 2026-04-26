@@ -578,6 +578,8 @@ td.reservation-cell {
   white-space: nowrap;
   letter-spacing: -0.01em;
 }
+/* The reversed-digits version is only used in print */
+.reservation-price .num-reversed { display: none; }
 
 .reservation-bar .reservation-center {
   flex: 0 1 auto;
@@ -2256,7 +2258,7 @@ canvas { background: transparent; }
   #reservation-table td,
   #beach-table th,
   #beach-table td {
-    padding: 2mm 1px !important;
+    padding: 0.8mm 1px !important;
     height: auto !important;
     border-color: #bbb !important;
     line-height: 1;
@@ -2299,7 +2301,7 @@ canvas { background: transparent; }
   #beach-table .floor-header td {
     font-size: 7pt !important;
     font-weight: 700 !important;
-    padding: 1mm 4px !important;
+    padding: 0.4mm 4px !important;
     background: #e8e8ed !important;
   }
   #reservation-table .reservation-bar,
@@ -2337,15 +2339,15 @@ canvas { background: transparent; }
   .reservation-icon { display: none !important; }
 
   /* Reservation bars in print:
-     - Confermato (yellow)   -> light grey
-     - In attesa (orange)    -> near-white with dashed border (still recognisable)
+     - Confermato (yellow)   -> medium grey (darker than before)
+     - In attesa (orange)    -> near-white with dashed border
      - Informazione (blue)   -> solid blue */
   html body #reservation-table .reservation-cell .reservation-bar.reservation-color-yellow,
   html body #reservation-table .reservation-bar.reservation-color-yellow {
-    background: #ececec !important;
+    background: #c5c5c5 !important;
     background-image: none !important;
     color: #000 !important;
-    border: 1px solid #c0c0c0 !important;
+    border: 1px solid #8a8a8a !important;
   }
   html body #reservation-table .reservation-cell .reservation-bar.reservation-color-orange,
   html body #reservation-table .reservation-bar.reservation-color-orange {
@@ -2368,7 +2370,7 @@ canvas { background: transparent; }
     color: #000 !important;
   }
 
-  /* Saturday columns + floor headers: same darker grey */
+  /* Saturday columns + floor headers: same darker grey (much darker now) */
   html body #reservation-table .saturday-column,
   html body #reservation-table tr th.saturday-column,
   html body #reservation-table tr td.saturday-column,
@@ -2376,24 +2378,30 @@ canvas { background: transparent; }
   html body #reservation-table .date-header.saturday-column,
   html body #reservation-table tr.floor-header td,
   html body #reservation-table .floor-header td {
-    background: #b6b6b6 !important;
+    background: #7f7f7f !important;
     background-image: none !important;
     color: #000 !important;
-    border-color: #888 !important;
+    border-color: #555 !important;
   }
-  html body #reservation-table .reservation-bg-stripe { background: #b6b6b6 !important; }
+  html body #reservation-table .reservation-bg-stripe { background: #7f7f7f !important; }
 
-  /* Drop the "€" and the year segment of the reference in print */
+  /* Drop the "€" and the year segment of the reference in print.
+     Also drop the on-screen price digits and show the reversed version. */
   html body #reservation-table .reservation-bar .reservation-price .cur,
-  html body #reservation-table .reservation-bar .reservation-ref .ref-year {
+  html body #reservation-table .reservation-bar .reservation-ref .ref-year,
+  html body #reservation-table .reservation-bar .reservation-price .num {
     display: none !important;
   }
+  html body #reservation-table .reservation-bar .reservation-price .num-reversed {
+    display: inline !important;
+  }
 
-  /* Mirror the price (right-to-left) in print */
-  html body #reservation-table .reservation-bar .reservation-price {
-    transform: scaleX(-1);
-    display: inline-block;
-    transform-origin: center;
+  /* Truncate client name without ellipsis (cut sharply, keep first chars) */
+  html body #reservation-table .reservation-bar .reservation-client-name {
+    text-overflow: clip !important;
+    word-break: break-all;
+    overflow: hidden;
+    white-space: nowrap;
   }
 
   /* Saturday stripes visible also under bars */

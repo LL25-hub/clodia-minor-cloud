@@ -1233,8 +1233,11 @@ function updateReservationTable(rooms, reservations, dates) {
                 ? `<div class="reservation-ref"><span class="ref-day-month">${refDayMonth}</span><span class="ref-year">${refYearTail}</span></div>`
                 : '';
               // Split the currency from the number so print can hide € easily
+              // and provide a reversed-digits version used only in print.
+              const priceNumStr = String(Math.round(estimateValue));
+              const priceNumReversed = priceNumStr.split('').reverse().join('');
               const priceHtml = estimateValue > 0
-                ? `<div class="reservation-price"><span class="cur">€</span><span class="num">${Math.round(estimateValue)}</span></div>`
+                ? `<div class="reservation-price"><span class="cur">€</span><span class="num">${priceNumStr}</span><span class="num-reversed" aria-hidden="true">${priceNumReversed}</span></div>`
                 : '';
 
               // Detect cross-month: the reservation extends from a previous
