@@ -2179,14 +2179,29 @@ canvas { background: transparent; }
   #page-content-wrapper { min-width: 0 !important; width: 100% !important; height: 100% !important; }
   .container-fluid { padding: 0 !important; max-width: none !important; height: 100% !important; }
 
-  /* Only the active section prints; make it a flex column that fills the page */
+  /* Only the active section prints — pinned to the viewport so it can never
+     overflow onto a 2nd page */
   .section { display: none !important; }
   .section.active {
     display: flex !important;
     flex-direction: column;
+    position: fixed !important;
+    top: 0; left: 0;
+    width: 100vw !important;
     height: 100vh !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
+    padding: 2mm !important;
+    box-sizing: border-box !important;
+    background: #fff !important;
     page-break-after: avoid !important;
     break-after: avoid !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+  .section.active * {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
   /* Header: show only the period badge (e.g. "Aprile 2026") */
@@ -2244,15 +2259,28 @@ canvas { background: transparent; }
     border-collapse: collapse !important;
     table-layout: fixed !important;
     width: 100% !important;
-    height: 100% !important;
+    height: auto !important;
+    max-height: 100% !important;
   }
-  #reservation-table tbody,
-  #beach-table tbody {
-    height: 100%;
-  }
+  /* Fixed-height rows: cap so the whole month (30 apartments + 4 floor
+     headers + date header) fits in a single A4 landscape page.
+     A4 landscape = 297×210mm; with 5mm margins we have ~200mm vertical.
+     month title (~6mm) + date header (~5mm) + 4 floor headers (~3mm each)
+     = ~23mm reserved → ~177mm for 30 rows → 5.9mm/row max. */
   #reservation-table tbody tr,
   #beach-table tbody tr {
-    height: auto;
+    height: 5.6mm !important;
+    max-height: 5.6mm !important;
+  }
+  #reservation-table tbody tr.floor-header,
+  #beach-table tbody tr.floor-header {
+    height: 3.5mm !important;
+    max-height: 3.5mm !important;
+  }
+  #reservation-table thead tr,
+  #beach-table thead tr {
+    height: 5mm !important;
+    max-height: 5mm !important;
   }
   #reservation-table th,
   #reservation-table td,
