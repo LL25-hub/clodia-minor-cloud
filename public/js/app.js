@@ -1224,6 +1224,18 @@ function updateReservationTable(rooms, reservations, dates) {
               const refText = currentReservation.reference ? String(currentReservation.reference).trim() : '';
               const estimateValue = parseFloat(currentReservation.estimate_amount) || 0;
               const priceText = estimateValue > 0 ? ('€' + Math.round(estimateValue)) : '';
+              // Split the reference into "day/month" + "/year" so we can hide
+              // the year in print. Match patterns like 5/05/2026, 12-7-26, 3.6.2026.
+              const refMatch = refText.match(/^(.*?)([\/\-.](\d{2,4}))$/);
+              const refDayMonth = refMatch ? refMatch[1] : refText;
+              const refYearTail = refMatch ? refMatch[2] : '';
+              const refHtml = refText
+                ? `<div class="reservation-ref"><span class="ref-day-month">${refDayMonth}</span><span class="ref-year">${refYearTail}</span></div>`
+                : '';
+              // Split the currency from the number so print can hide € easily
+              const priceHtml = estimateValue > 0
+                ? `<div class="reservation-price"><span class="cur">€</span><span class="num">${Math.round(estimateValue)}</span></div>`
+                : '';
 
               // Detect cross-month: the reservation extends from a previous
               // month or into the next one — used by CSS to mark the bar.
@@ -1250,11 +1262,11 @@ function updateReservationTable(rooms, reservations, dates) {
     data-bs-html="true"
     data-bs-title="${tooltipContent}">
     <div class="reservation-body">
-      ${refText ? `<div class="reservation-ref">${refText}</div>` : ''}
+      ${refHtml}
       <div class="reservation-center">
         <div class="reservation-client-name">${currentReservation.client_name}</div>
       </div>
-      ${priceText ? `<div class="reservation-price">${priceText}</div>` : ''}
+      ${priceHtml}
     </div>
     ${rightHtml}
   </div>

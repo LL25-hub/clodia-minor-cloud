@@ -2336,16 +2336,16 @@ canvas { background: transparent; }
   }
   .reservation-icon { display: none !important; }
 
-  /* Reservation bars in print — high-specificity to beat apple-theme rules.
-     - Confermato (yellow)   -> darker mustard so it stands out on paper
-     - In attesa (orange)    -> near-white with dashed border
+  /* Reservation bars in print:
+     - Confermato (yellow)   -> light grey
+     - In attesa (orange)    -> near-white with dashed border (still recognisable)
      - Informazione (blue)   -> solid blue */
   html body #reservation-table .reservation-cell .reservation-bar.reservation-color-yellow,
   html body #reservation-table .reservation-bar.reservation-color-yellow {
-    background: #d4a600 !important;
+    background: #ececec !important;
     background-image: none !important;
     color: #000 !important;
-    border: 1px solid #8a6b00 !important;
+    border: 1px solid #c0c0c0 !important;
   }
   html body #reservation-table .reservation-cell .reservation-bar.reservation-color-orange,
   html body #reservation-table .reservation-bar.reservation-color-orange {
@@ -2362,11 +2362,38 @@ canvas { background: transparent; }
     color: #fff !important;
     border: 1px solid #004a99 !important;
   }
-  /* Orange icons/inner text must stay dark on the white fill */
   html body #reservation-table .reservation-bar.reservation-color-orange .reservation-client-name,
   html body #reservation-table .reservation-bar.reservation-color-orange .reservation-ref,
   html body #reservation-table .reservation-bar.reservation-color-orange .reservation-price {
     color: #000 !important;
+  }
+
+  /* Saturday columns + floor headers: same darker grey */
+  html body #reservation-table .saturday-column,
+  html body #reservation-table tr th.saturday-column,
+  html body #reservation-table tr td.saturday-column,
+  html body #reservation-table tbody tr td.saturday-column,
+  html body #reservation-table .date-header.saturday-column,
+  html body #reservation-table tr.floor-header td,
+  html body #reservation-table .floor-header td {
+    background: #b6b6b6 !important;
+    background-image: none !important;
+    color: #000 !important;
+    border-color: #888 !important;
+  }
+  html body #reservation-table .reservation-bg-stripe { background: #b6b6b6 !important; }
+
+  /* Drop the "€" and the year segment of the reference in print */
+  html body #reservation-table .reservation-bar .reservation-price .cur,
+  html body #reservation-table .reservation-bar .reservation-ref .ref-year {
+    display: none !important;
+  }
+
+  /* Mirror the price (right-to-left) in print */
+  html body #reservation-table .reservation-bar .reservation-price {
+    transform: scaleX(-1);
+    display: inline-block;
+    transform-origin: center;
   }
 
   /* Saturday stripes visible also under bars */
