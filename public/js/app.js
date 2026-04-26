@@ -97,11 +97,12 @@ function resetHistorySearch() {
   // Aggiorna la visualizzazione con tutte le prenotazioni
   updateReservationsHistory(allReservations);
 }
-// Stato dell'applicazione
+// Stato dell'applicazione (esposto su window per usi cross-modulo, es. print.js)
 const appState = {
   currentMonth: new Date().getMonth(),
   currentYear: new Date().getFullYear()
 };
+window.appState = appState;
 // Funzione per eliminare una prenotazione
 async function deleteReservation(reservationId) {
   if (!reservationId) return;
