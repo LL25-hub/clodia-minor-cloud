@@ -87,21 +87,27 @@
     const umbrellaPct = 5;
     const dayPct = (100 - umbrellaPct) / dayCount;
 
+    // Header row used both at the top (thead) and at the bottom (tfoot)
+    const headerRow = (() => {
+      let h = '<tr><th class="room-cell">App.</th>';
+      dates.forEach(d => {
+        const dd = new Date(d + 'T00:00:00');
+        const isSat = dd.getDay() === 6;
+        h += '<th class="day-h' + (isSat ? ' sat' : '') + '">' +
+             '<div class="day-n">' + dd.getDate() + '</div>' +
+             '<div class="day-a">' + WEEKDAYS_IT[dd.getDay()] + '</div></th>';
+      });
+      h += '</tr>';
+      return h;
+    })();
+
     let html = '';
-    // Header row: day numbers + abbr
     html += '<table class="reg-table"><colgroup>';
     html += '<col class="col-room">';
     for (let i = 0; i < dayCount; i++) html += '<col class="col-day">';
     html += '</colgroup>';
-    html += '<thead><tr><th class="room-cell">App.</th>';
-    dates.forEach(d => {
-      const dd = new Date(d + 'T00:00:00');
-      const isSat = dd.getDay() === 6;
-      html += '<th class="day-h' + (isSat ? ' sat' : '') + '">' +
-              '<div class="day-n">' + dd.getDate() + '</div>' +
-              '<div class="day-a">' + WEEKDAYS_IT[dd.getDay()] + '</div></th>';
-    });
-    html += '</tr></thead><tbody>';
+    html += '<thead>' + headerRow + '</thead>';
+    html += '<tbody>';
 
     const monthFirst = dates[0];
     const monthLast = dates[dates.length - 1];
@@ -150,11 +156,10 @@
             const refDM = escapeHtml(refDayMonthOnly(cur.reference));
             const est = parseFloat(cur.estimate_amount) || 0;
             const priceRev = est > 0 ? reverseDigits(Math.round(est)) : '';
-            const name = escapeHtml(cur.client_name || 'Cliente');
-
-            // Decide which labels to show based on span (priority: name > price > ref)
-            const showRef = span >= 5 && refDM;
-            const showPrice = span >= 4 && priceRev;
+            const fullName = cur.client_name || 'Cliente';
+            const firstWord = (fullName.match(/^\s*(\S+)/) || [, fullName])[1];
+            const fullNameEsc = escapeHtml(fullName);
+            const firstWordEsc = escapeHtml(firstWord);
 
             // Saturday stripes background
             let stripes = '';
@@ -165,13 +170,29 @@
               });
             }
 
+            // Tiered content based on available width:
+            //   span ≥ 5 → ref (left) + full name (center) + price (right)
+            //   span 3–4 → first name (left) + ref (right), no price
+            //   span ≤ 2 → first name centered (no ref, no price)
+            let mode = 'min';
+            if (span >= 5) mode = 'full';
+            else if (span >= 3) mode = 'compact';
+
+            let inner = '';
+            if (mode === 'full') {
+              if (refDM) inner += '<span class="bar-ref">' + refDM + '</span>';
+              inner += '<span class="bar-name">' + fullNameEsc + '</span>';
+              if (priceRev) inner += '<span class="bar-price">' + priceRev + '</span>';
+            } else if (mode === 'compact') {
+              inner += '<span class="bar-name">' + firstWordEsc + '</span>';
+              if (refDM) inner += '<span class="bar-ref">' + refDM + '</span>';
+            } else {
+              inner += '<span class="bar-name">' + firstWordEsc + '</span>';
+            }
+
             html += '<td class="bar-cell ' + color + (fromPrev ? ' from-prev' : '') + (toNext ? ' to-next' : '') + '" colspan="' + span + '">';
             html += stripes;
-            html += '<div class="bar">';
-            if (showRef) html += '<span class="bar-ref">' + refDM + '</span>';
-            html += '<span class="bar-name">' + name + '</span>';
-            if (showPrice) html += '<span class="bar-price">' + priceRev + '</span>';
-            html += '</div></td>';
+            html += '<div class="bar bar-' + mode + '">' + inner + '</div></td>';
             i = j;
           }
         }
@@ -179,7 +200,9 @@
       });
     });
 
-    html += '</tbody></table>';
+    html += '</tbody>';
+    html += '<tfoot>' + headerRow + '</tfoot>';
+    html += '</table>';
 
     return wrapPrintDocument(monthLabel, html, registroCss(dayCount));
   }
@@ -188,17 +211,18 @@
     // Layout budget for A4 landscape (297×210mm) with 3mm @page margins:
     //   available height ≈ 204mm
     //   month title ............... 4mm
-    //   thead row ................. 4mm
-    //   5 floor rows × 2.8mm ...... 14mm
-    //   30 room rows × 4.9mm ...... 147mm
-    //   border collapse + slack ... ~25mm
-    // → fits comfortably on one page.
+    //   thead row (top) ........... 4.5mm
+    //   5 floor rows × 3mm ........ 15mm
+    //   30 room rows × 5.0mm ...... 150mm
+    //   tfoot row (bottom) ........ 4.5mm
+    //   borders + slack ........... ~25mm
+    // → fits in ~203mm.
     return `
       @page { size: 297mm 210mm; margin: 3mm; }
       html, body { margin: 0; padding: 0; background: #fff; color: #000;
         font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
         -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .month-title { text-align: center; font-size: 10pt; font-weight: 700; margin: 0 0 1mm; text-transform: capitalize; line-height: 1; }
+      .month-title { text-align: center; font-size: 11pt; font-weight: 700; margin: 0 0 1mm; text-transform: capitalize; line-height: 1; }
       .reg-table { width: 100%; border-collapse: collapse; table-layout: fixed; page-break-inside: avoid; break-inside: avoid; }
       .reg-table tr { page-break-inside: avoid; break-inside: avoid; }
       .reg-table col.col-room { width: 5%; }
@@ -206,37 +230,40 @@
       .reg-table th, .reg-table td {
         border: 1px solid #888;
         padding: 0;
-        font-size: 6.5pt;
+        font-size: 7pt;
         line-height: 1;
         vertical-align: middle;
         overflow: hidden;
       }
-      .reg-table thead th { background: #fff; height: 4mm; padding: 0; }
-      .reg-table .day-h .day-n { font-size: 6.5pt; font-weight: 700; }
-      .reg-table .day-h .day-a { font-size: 4.5pt; color: #555; }
+      .reg-table thead th, .reg-table tfoot th { background: #fff; height: 4.5mm; padding: 0; }
+      .reg-table .day-h .day-n { font-size: 7.5pt; font-weight: 700; }
+      .reg-table .day-h .day-a { font-size: 5pt; color: #555; }
       .reg-table .day-h.sat { background: #7f7f7f !important; }
-      .reg-table .room-cell { font-weight: 700; font-size: 8pt; text-align: center; padding: 0 2px; background: #fff; }
-      .reg-table .floor-row td { background: #7f7f7f !important; font-weight: 700; font-size: 7pt; text-align: left; padding: 0 4px; height: 2.8mm; color: #000; }
-      .reg-table tr.room-row td { height: 4.9mm; }
+      .reg-table .room-cell { font-weight: 700; font-size: 9pt; text-align: center; padding: 0 2px; background: #fff; }
+      .reg-table .floor-row td { background: #7f7f7f !important; font-weight: 700; font-size: 8pt; text-align: left; padding: 0 4px; height: 3mm; color: #000; }
+      .reg-table tr.room-row td { height: 5mm; }
       .reg-table td.empty.sat { background: #7f7f7f !important; }
       .reg-table td.bar-cell { position: relative; padding: 0; background: transparent; }
       .reg-table td.bar-cell .bg-stripe { position: absolute; top: 0; bottom: 0; background: #7f7f7f; }
       .reg-table td.bar-cell .bar {
         position: relative; z-index: 2;
         margin: 0.2mm 0; height: calc(100% - 0.4mm);
-        display: flex; align-items: center; justify-content: center; gap: 3px;
+        display: flex; align-items: center; gap: 3px;
         padding: 0 3px;
-        font-size: 7pt; font-weight: 700; line-height: 1;
+        font-size: 8pt; font-weight: 700; line-height: 1;
         border: 1px solid #888;
       }
+      .reg-table td.bar-cell .bar.bar-full    { justify-content: center; }
+      .reg-table td.bar-cell .bar.bar-compact { justify-content: space-between; }
+      .reg-table td.bar-cell .bar.bar-min     { justify-content: center; }
       .reg-table td.bar-cell.yellow .bar { background: #c5c5c5; color: #000; border-color: #8a8a8a; }
       .reg-table td.bar-cell.orange .bar { background: #fff; color: #000; border: 1px dashed #8a8a8a; }
       .reg-table td.bar-cell.blue   .bar { background: #0a84ff; color: #fff; border-color: #004a99; }
       .reg-table td.bar-cell.from-prev .bar { border-top-left-radius: 0; border-bottom-left-radius: 0; border-left-width: 3px; }
       .reg-table td.bar-cell.to-next   .bar { border-top-right-radius: 0; border-bottom-right-radius: 0; border-right-width: 3px; }
       .reg-table .bar-name { font-weight: 700; overflow: hidden; white-space: nowrap; text-overflow: clip; min-width: 0; }
-      .reg-table .bar-ref { font-size: 5.5pt; background: rgba(0,0,0,0.15); padding: 0 3px; border-radius: 3px; white-space: nowrap; }
-      .reg-table .bar-price { font-size: 7pt; font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+      .reg-table .bar-ref { font-size: 6.5pt; background: rgba(0,0,0,0.15); padding: 0 3px; border-radius: 3px; white-space: nowrap; }
+      .reg-table .bar-price { font-size: 8pt; font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
     `;
   }
 
@@ -254,20 +281,26 @@
     });
     for (const arr of byRow.values()) arr.sort((a,b) => (a.position||0) - (b.position||0) || a.code.localeCompare(b.code));
 
+    const headerRow = (() => {
+      let h = '<tr><th class="room-cell">Ombr.</th>';
+      dates.forEach(d => {
+        const dd = new Date(d + 'T00:00:00');
+        const isSat = dd.getDay() === 6;
+        h += '<th class="day-h' + (isSat ? ' sat' : '') + '">' +
+             '<div class="day-n">' + dd.getDate() + '</div>' +
+             '<div class="day-a">' + WEEKDAYS_IT[dd.getDay()] + '</div></th>';
+      });
+      h += '</tr>';
+      return h;
+    })();
+
     let html = '<div class="month-block"><div class="month-title">' + monthLabel + '</div>';
     html += '<table class="reg-table"><colgroup>';
     html += '<col class="col-room">';
     for (let i = 0; i < dayCount; i++) html += '<col class="col-day">';
     html += '</colgroup>';
-    html += '<thead><tr><th class="room-cell">Ombr.</th>';
-    dates.forEach(d => {
-      const dd = new Date(d + 'T00:00:00');
-      const isSat = dd.getDay() === 6;
-      html += '<th class="day-h' + (isSat ? ' sat' : '') + '">' +
-              '<div class="day-n">' + dd.getDate() + '</div>' +
-              '<div class="day-a">' + WEEKDAYS_IT[dd.getDay()] + '</div></th>';
-    });
-    html += '</tr></thead><tbody>';
+    html += '<thead>' + headerRow + '</thead>';
+    html += '<tbody>';
 
     for (const [rowLabel, list] of byRow) {
       html += '<tr class="floor-row"><td colspan="' + (dayCount + 1) + '">' + escapeHtml(rowLabel) + '</td></tr>';
@@ -294,9 +327,26 @@
             const span = j - i;
             const r = cur.reservation || {};
             const color = (r.reservation_color || 'yellow').toLowerCase();
-            const name = escapeHtml((r.client && r.client.name) || 'Cliente');
+            const fullName = (r.client && r.client.name) || 'Cliente';
+            const firstWord = (fullName.match(/^\s*(\S+)/) || [, fullName])[1];
+            const refDM = escapeHtml(refDayMonthOnly(r.reference));
+
+            let mode = 'min', inner = '';
+            if (span >= 5) mode = 'full';
+            else if (span >= 3) mode = 'compact';
+
+            if (mode === 'full') {
+              if (refDM) inner += '<span class="bar-ref">' + refDM + '</span>';
+              inner += '<span class="bar-name">' + escapeHtml(fullName) + '</span>';
+            } else if (mode === 'compact') {
+              inner += '<span class="bar-name">' + escapeHtml(firstWord) + '</span>';
+              if (refDM) inner += '<span class="bar-ref">' + refDM + '</span>';
+            } else {
+              inner += '<span class="bar-name">' + escapeHtml(firstWord) + '</span>';
+            }
+
             html += '<td class="bar-cell ' + color + '" colspan="' + span + '">';
-            html += '<div class="bar"><span class="bar-name">' + name + '</span></div>';
+            html += '<div class="bar bar-' + mode + '">' + inner + '</div>';
             html += '</td>';
             i = j;
           }
@@ -304,16 +354,26 @@
         html += '</tr>';
       });
     }
-    html += '</tbody></table></div>';
+    html += '</tbody>';
+    html += '<tfoot>' + headerRow + '</tfoot>';
+    html += '</table></div>';
     return html;
   }
 
   function buildSpiaggiaHtml(blocks, dayCount, monthCount) {
-    // Pick row height so n umbrellas (~30) + headers fit on one page.
-    // For 2-month mode we have to halve the per-row height roughly.
-    const rowH = monthCount === 2 ? 2.6 : 4.9;
-    const floorH = monthCount === 2 ? 2.2 : 2.8;
-    const titleSize = monthCount === 2 ? 8 : 10;
+    // Each month-block has a thead + tfoot (4mm each) + content.
+    // For 2-month mode we need to fit ~2 × (~30 umbrellas + headers + footers) → tighter rows.
+    const rowH = monthCount === 2 ? 2.5 : 5;
+    const floorH = monthCount === 2 ? 2.2 : 3;
+    const titleSize = monthCount === 2 ? 9 : 11;
+    const headerH = monthCount === 2 ? 3.5 : 4.5;
+    const fontBar = monthCount === 2 ? 6.5 : 8;
+    const fontRef = monthCount === 2 ? 5 : 6.5;
+    const fontName = monthCount === 2 ? 6.5 : 8;
+    const fontDay = monthCount === 2 ? 6 : 7.5;
+    const fontDayA = monthCount === 2 ? 4.5 : 5;
+    const fontRoom = monthCount === 2 ? 7 : 9;
+    const fontFloor = monthCount === 2 ? 6.5 : 8;
     const css = `
       @page { size: 297mm 210mm; margin: 3mm; }
       html, body { margin: 0; padding: 0; background: #fff; color: #000;
@@ -329,31 +389,35 @@
       .reg-table th, .reg-table td {
         border: 1px solid #888;
         padding: 0;
-        font-size: 6.5pt;
+        font-size: ${fontBar}pt;
         line-height: 1;
         vertical-align: middle;
         overflow: hidden;
       }
-      .reg-table thead th { background: #fff; height: 4mm; padding: 0; }
-      .reg-table .day-h .day-n { font-size: 6.5pt; font-weight: 700; }
-      .reg-table .day-h .day-a { font-size: 4.5pt; color: #555; }
+      .reg-table thead th, .reg-table tfoot th { background: #fff; height: ${headerH}mm; padding: 0; }
+      .reg-table .day-h .day-n { font-size: ${fontDay}pt; font-weight: 700; }
+      .reg-table .day-h .day-a { font-size: ${fontDayA}pt; color: #555; }
       .reg-table .day-h.sat { background: #7f7f7f !important; }
-      .reg-table .room-cell { font-weight: 700; font-size: 8pt; text-align: center; padding: 0 2px; background: #fff; }
-      .reg-table .floor-row td { background: #7f7f7f !important; font-weight: 700; font-size: 7pt; text-align: left; padding: 0 4px; height: ${floorH}mm; color: #000; }
+      .reg-table .room-cell { font-weight: 700; font-size: ${fontRoom}pt; text-align: center; padding: 0 2px; background: #fff; }
+      .reg-table .floor-row td { background: #7f7f7f !important; font-weight: 700; font-size: ${fontFloor}pt; text-align: left; padding: 0 4px; height: ${floorH}mm; color: #000; }
       .reg-table tr.room-row td { height: ${rowH}mm; }
       .reg-table td.empty.sat { background: #7f7f7f !important; }
       .reg-table td.bar-cell { position: relative; padding: 0; }
       .reg-table td.bar-cell .bar {
         margin: 0.2mm 0; height: calc(100% - 0.4mm);
-        display: flex; align-items: center; justify-content: center;
-        padding: 0 2px;
-        font-size: 6.5pt; font-weight: 700; line-height: 1;
+        display: flex; align-items: center; gap: 3px;
+        padding: 0 3px;
+        font-size: ${fontBar}pt; font-weight: 700; line-height: 1;
         border: 1px solid #888;
       }
+      .reg-table td.bar-cell .bar.bar-full    { justify-content: center; }
+      .reg-table td.bar-cell .bar.bar-compact { justify-content: space-between; }
+      .reg-table td.bar-cell .bar.bar-min     { justify-content: center; }
       .reg-table td.bar-cell.yellow .bar { background: #c5c5c5; color: #000; border-color: #8a8a8a; }
       .reg-table td.bar-cell.orange .bar { background: #fff; color: #000; border: 1px dashed #8a8a8a; }
       .reg-table td.bar-cell.blue   .bar { background: #0a84ff; color: #fff; border-color: #004a99; }
-      .reg-table .bar-name { overflow: hidden; white-space: nowrap; text-overflow: clip; }
+      .reg-table .bar-name { font-weight: 700; overflow: hidden; white-space: nowrap; text-overflow: clip; min-width: 0; }
+      .reg-table .bar-ref { font-size: ${fontRef}pt; background: rgba(0,0,0,0.15); padding: 0 3px; border-radius: 3px; white-space: nowrap; }
     `;
     return wrapPrintDocument('Spiaggia', '<div class="sheet">' + blocks.join('') + '</div>', css);
   }
