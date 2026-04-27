@@ -5,10 +5,9 @@
  * the app's screen CSS, so we get deterministic A4-landscape pages with the
  * exact widths/heights we need — no flex collapse, no overflow surprises.
  *
- * Two flows are supported:
- *   - Registro:   prints the currently visible month (rooms × days)
- *   - Spiaggia:   prints either the current month or the current + next month
- *                 (umbrellas × days, mode = "1" | "2")
+ * The "Stampa" button on the Registro produces a 2-page document:
+ *   page 1 — Registro:  rooms × days for the currently visible month
+ *   page 2 — Spiaggia:  umbrellas × days for the same month
  */
 (function () {
   // ---------- shared helpers ----------
@@ -68,10 +67,9 @@
   }
 
   // ---------- registro renderer ----------
-  function buildRegistroHtml(year, month, rooms, reservations) {
+  function buildRegistroTable(year, month, rooms, reservations) {
     const dates = monthDates(year, month);
     const dayCount = dates.length;
-    const monthLabel = MONTHS_IT[month] + ' ' + year;
 
     // Group rooms by floor (preserve common ordering)
     const FLOOR_ORDER = ['Piano Terra','Primo Piano','Secondo Piano','Terzo Piano','Quarto Piano','Altro'];
@@ -204,7 +202,7 @@
     html += '<tfoot>' + headerRow + '</tfoot>';
     html += '</table>';
 
-    return wrapPrintDocument(monthLabel, html, registroCss(dayCount));
+    return html;
   }
 
   function registroCss(dayCount) {
@@ -452,31 +450,51 @@
     });
   }
 
+  // ---------- combined registro + spiaggia (2-page document) ----------
+  function buildRegistroAndSpiaggiaHtml(year, month, rooms, reservations, umbrellas, assignments) {
+    const dates = monthDates(year, month);
+    const dayCount = dates.length;
+    const monthLabel = MONTHS_IT[month] + ' ' + year;
+
+    const registroTable = buildRegistroTable(year, month, rooms, reservations);
+    const spiaggiaBlock = buildSpiaggiaMonthBlock(year, month, umbrellas, assignments);
+    // Replace the spiaggia block's own title with one prefixed by "Spiaggia — "
+    const spiaggiaWithLabel = spiaggiaBlock.replace(
+      /<div class="month-title">[\s\S]*?<\/div>/,
+      '<div class="month-title">Spiaggia — ' + escapeHtml(monthLabel) + '</div>'
+    );
+
+    const body =
+      '<div class="page page-registro">' +
+        '<div class="month-title">' + escapeHtml(monthLabel) + '</div>' +
+        registroTable +
+      '</div>' +
+      '<div class="page page-spiaggia">' + spiaggiaWithLabel + '</div>';
+
+    const css = registroCss(dayCount) + `
+      .page { page-break-after: always; break-after: page; }
+      .page:last-child { page-break-after: auto; break-after: auto; }
+      /* Spiaggia has fewer rows than Registro (~20 vs 30) so we can
+         relax the row height a bit on page 2 for legibility. */
+      .page-spiaggia .reg-table tr.room-row td { height: 6mm; }
+      .page-spiaggia .reg-table .floor-row td { height: 3.5mm; }
+    `;
+
+    return wrapPrintDocument(monthLabel, body, css);
+  }
+
   async function printRegistro() {
     const ay = (window.appState && window.appState.currentYear) || new Date().getFullYear();
     const am = (window.appState && window.appState.currentMonth) || new Date().getMonth();
-    const { rooms, reservations } = await fetchRoomsAndReservations();
-    const html = buildRegistroHtml(ay, am, rooms || [], reservations || []);
-    await openInIframeAndPrint(html);
-  }
-
-  async function printSpiaggia(mode) {
-    const now = new Date();
-    const y1 = now.getFullYear(), m1 = now.getMonth();
-    const blocks = [];
-    const { umbrellas: u1, assignments: a1 } = await fetchUmbrellasAndAssignments(y1, m1);
-    blocks.push(buildSpiaggiaMonthBlock(y1, m1, u1, a1));
-    let dayCount = monthDates(y1, m1).length;
-    let monthCount = 1;
-    if (mode === '2') {
-      const next = new Date(y1, m1 + 1, 1);
-      const y2 = next.getFullYear(), m2 = next.getMonth();
-      const { umbrellas: u2, assignments: a2 } = await fetchUmbrellasAndAssignments(y2, m2);
-      blocks.push(buildSpiaggiaMonthBlock(y2, m2, u2, a2));
-      dayCount = Math.max(dayCount, monthDates(y2, m2).length);
-      monthCount = 2;
-    }
-    const html = buildSpiaggiaHtml(blocks, dayCount, monthCount);
+    const [resData, beachData] = await Promise.all([
+      fetchRoomsAndReservations(),
+      fetchUmbrellasAndAssignments(ay, am)
+    ]);
+    const html = buildRegistroAndSpiaggiaHtml(
+      ay, am,
+      resData.rooms || [], resData.reservations || [],
+      beachData.umbrellas || [], beachData.assignments || []
+    );
     await openInIframeAndPrint(html);
   }
 
@@ -488,11 +506,8 @@
     btn.disabled = true;
     try {
       const section = btn.dataset.printSection || '';
-      const mode = btn.dataset.printMode || '1';
       if (section === 'reservations') {
         await printRegistro();
-      } else if (section === 'beach') {
-        await printSpiaggia(mode);
       }
     } catch (err) {
       console.error('Print failed:', err);
