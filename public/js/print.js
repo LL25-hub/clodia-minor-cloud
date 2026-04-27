@@ -185,41 +185,46 @@
   }
 
   function registroCss(dayCount) {
-    // Row height computed from available vertical space:
-    // 297×210mm A4 landscape, 5mm @page margins, ~6mm month title + ~5mm header row.
-    // We'll just set fixed mm values that work for ~30 rooms.
+    // Layout budget for A4 landscape (297×210mm) with 3mm @page margins:
+    //   available height ≈ 204mm
+    //   month title ............... 4mm
+    //   thead row ................. 4mm
+    //   5 floor rows × 2.8mm ...... 14mm
+    //   30 room rows × 4.9mm ...... 147mm
+    //   border collapse + slack ... ~25mm
+    // → fits comfortably on one page.
     return `
-      @page { size: 297mm 210mm; margin: 5mm; }
+      @page { size: 297mm 210mm; margin: 3mm; }
       html, body { margin: 0; padding: 0; background: #fff; color: #000;
         font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
         -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .month-title { text-align: center; font-size: 13pt; font-weight: 700; margin: 0 0 2mm; text-transform: capitalize; }
-      .reg-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+      .month-title { text-align: center; font-size: 10pt; font-weight: 700; margin: 0 0 1mm; text-transform: capitalize; line-height: 1; }
+      .reg-table { width: 100%; border-collapse: collapse; table-layout: fixed; page-break-inside: avoid; break-inside: avoid; }
+      .reg-table tr { page-break-inside: avoid; break-inside: avoid; }
       .reg-table col.col-room { width: 5%; }
       .reg-table col.col-day { width: ${(95/dayCount).toFixed(4)}%; }
       .reg-table th, .reg-table td {
         border: 1px solid #888;
         padding: 0;
-        font-size: 7pt;
+        font-size: 6.5pt;
         line-height: 1;
-        height: 5.4mm;
         vertical-align: middle;
         overflow: hidden;
       }
-      .reg-table thead th { background: #fff; height: 5mm; padding: 0; }
-      .reg-table .day-h .day-n { font-size: 7pt; font-weight: 700; }
-      .reg-table .day-h .day-a { font-size: 5pt; color: #555; }
+      .reg-table thead th { background: #fff; height: 4mm; padding: 0; }
+      .reg-table .day-h .day-n { font-size: 6.5pt; font-weight: 700; }
+      .reg-table .day-h .day-a { font-size: 4.5pt; color: #555; }
       .reg-table .day-h.sat { background: #7f7f7f !important; }
-      .reg-table .room-cell { font-weight: 700; font-size: 9pt; text-align: center; padding: 0 2px; background: #fff; }
-      .reg-table .floor-row td { background: #7f7f7f !important; font-weight: 700; font-size: 8pt; text-align: left; padding: 0.3mm 4px; height: 3.5mm; color: #000; }
-      .reg-table tr.room-row td { height: 5.4mm; }
+      .reg-table .room-cell { font-weight: 700; font-size: 8pt; text-align: center; padding: 0 2px; background: #fff; }
+      .reg-table .floor-row td { background: #7f7f7f !important; font-weight: 700; font-size: 7pt; text-align: left; padding: 0 4px; height: 2.8mm; color: #000; }
+      .reg-table tr.room-row td { height: 4.9mm; }
       .reg-table td.empty.sat { background: #7f7f7f !important; }
       .reg-table td.bar-cell { position: relative; padding: 0; background: transparent; }
       .reg-table td.bar-cell .bg-stripe { position: absolute; top: 0; bottom: 0; background: #7f7f7f; }
       .reg-table td.bar-cell .bar {
         position: relative; z-index: 2;
-        margin: 0.3mm 0; height: calc(100% - 0.6mm);
-        display: flex; align-items: center; justify-content: center; gap: 4px;
+        margin: 0.2mm 0; height: calc(100% - 0.4mm);
+        display: flex; align-items: center; justify-content: center; gap: 3px;
         padding: 0 3px;
         font-size: 7pt; font-weight: 700; line-height: 1;
         border: 1px solid #888;
@@ -230,8 +235,8 @@
       .reg-table td.bar-cell.from-prev .bar { border-top-left-radius: 0; border-bottom-left-radius: 0; border-left-width: 3px; }
       .reg-table td.bar-cell.to-next   .bar { border-top-right-radius: 0; border-bottom-right-radius: 0; border-right-width: 3px; }
       .reg-table .bar-name { font-weight: 700; overflow: hidden; white-space: nowrap; text-overflow: clip; min-width: 0; }
-      .reg-table .bar-ref { font-size: 6pt; background: rgba(0,0,0,0.15); padding: 0 4px; border-radius: 3px; white-space: nowrap; }
-      .reg-table .bar-price { font-size: 8pt; font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+      .reg-table .bar-ref { font-size: 5.5pt; background: rgba(0,0,0,0.15); padding: 0 3px; border-radius: 3px; white-space: nowrap; }
+      .reg-table .bar-price { font-size: 7pt; font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
     `;
   }
 
@@ -303,41 +308,46 @@
     return html;
   }
 
-  function buildSpiaggiaHtml(blocks, dayCount) {
+  function buildSpiaggiaHtml(blocks, dayCount, monthCount) {
+    // Pick row height so n umbrellas (~30) + headers fit on one page.
+    // For 2-month mode we have to halve the per-row height roughly.
+    const rowH = monthCount === 2 ? 2.6 : 4.9;
+    const floorH = monthCount === 2 ? 2.2 : 2.8;
+    const titleSize = monthCount === 2 ? 8 : 10;
     const css = `
-      @page { size: 297mm 210mm; margin: 5mm; }
+      @page { size: 297mm 210mm; margin: 3mm; }
       html, body { margin: 0; padding: 0; background: #fff; color: #000;
         font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
         -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .sheet { display: flex; flex-direction: column; gap: 3mm; height: 100vh; box-sizing: border-box; }
-      .month-block { display: flex; flex-direction: column; min-height: 0; }
-      .month-block.flex-1 { flex: 1 1 0; }
-      .month-title { text-align: center; font-size: 11pt; font-weight: 700; margin: 0 0 1mm; text-transform: capitalize; }
-      .reg-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+      .sheet { display: flex; flex-direction: column; gap: 2mm; }
+      .month-block { display: block; page-break-inside: avoid; break-inside: avoid; }
+      .month-title { text-align: center; font-size: ${titleSize}pt; font-weight: 700; margin: 0 0 1mm; text-transform: capitalize; line-height: 1; }
+      .reg-table { width: 100%; border-collapse: collapse; table-layout: fixed; page-break-inside: avoid; break-inside: avoid; }
+      .reg-table tr { page-break-inside: avoid; break-inside: avoid; }
       .reg-table col.col-room { width: 5%; }
       .reg-table col.col-day { width: ${(95/dayCount).toFixed(4)}%; }
       .reg-table th, .reg-table td {
         border: 1px solid #888;
         padding: 0;
-        font-size: 7pt;
+        font-size: 6.5pt;
         line-height: 1;
-        height: 5.4mm;
         vertical-align: middle;
         overflow: hidden;
       }
-      .reg-table thead th { background: #fff; height: 4.5mm; padding: 0; }
+      .reg-table thead th { background: #fff; height: 4mm; padding: 0; }
       .reg-table .day-h .day-n { font-size: 6.5pt; font-weight: 700; }
       .reg-table .day-h .day-a { font-size: 4.5pt; color: #555; }
       .reg-table .day-h.sat { background: #7f7f7f !important; }
       .reg-table .room-cell { font-weight: 700; font-size: 8pt; text-align: center; padding: 0 2px; background: #fff; }
-      .reg-table .floor-row td { background: #7f7f7f !important; font-weight: 700; font-size: 7pt; text-align: left; padding: 0.3mm 4px; height: 3.2mm; color: #000; }
+      .reg-table .floor-row td { background: #7f7f7f !important; font-weight: 700; font-size: 7pt; text-align: left; padding: 0 4px; height: ${floorH}mm; color: #000; }
+      .reg-table tr.room-row td { height: ${rowH}mm; }
       .reg-table td.empty.sat { background: #7f7f7f !important; }
       .reg-table td.bar-cell { position: relative; padding: 0; }
       .reg-table td.bar-cell .bar {
-        margin: 0.3mm 0; height: calc(100% - 0.6mm);
+        margin: 0.2mm 0; height: calc(100% - 0.4mm);
         display: flex; align-items: center; justify-content: center;
         padding: 0 2px;
-        font-size: 7pt; font-weight: 700; line-height: 1;
+        font-size: 6.5pt; font-weight: 700; line-height: 1;
         border: 1px solid #888;
       }
       .reg-table td.bar-cell.yellow .bar { background: #c5c5c5; color: #000; border-color: #8a8a8a; }
@@ -391,16 +401,18 @@
     const y1 = now.getFullYear(), m1 = now.getMonth();
     const blocks = [];
     const { umbrellas: u1, assignments: a1 } = await fetchUmbrellasAndAssignments(y1, m1);
-    blocks.push(buildSpiaggiaMonthBlock(y1, m1, u1, a1).replace('class="month-block"', 'class="month-block flex-1"'));
+    blocks.push(buildSpiaggiaMonthBlock(y1, m1, u1, a1));
     let dayCount = monthDates(y1, m1).length;
+    let monthCount = 1;
     if (mode === '2') {
       const next = new Date(y1, m1 + 1, 1);
       const y2 = next.getFullYear(), m2 = next.getMonth();
       const { umbrellas: u2, assignments: a2 } = await fetchUmbrellasAndAssignments(y2, m2);
-      blocks.push(buildSpiaggiaMonthBlock(y2, m2, u2, a2).replace('class="month-block"', 'class="month-block flex-1"'));
+      blocks.push(buildSpiaggiaMonthBlock(y2, m2, u2, a2));
       dayCount = Math.max(dayCount, monthDates(y2, m2).length);
+      monthCount = 2;
     }
-    const html = buildSpiaggiaHtml(blocks, dayCount);
+    const html = buildSpiaggiaHtml(blocks, dayCount, monthCount);
     await openInIframeAndPrint(html);
   }
 
