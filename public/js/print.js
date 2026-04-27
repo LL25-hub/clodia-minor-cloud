@@ -454,19 +454,21 @@
   function buildRegistroAndSpiaggiaHtml(year, month, rooms, reservations, umbrellas, assignments) {
     const dates = monthDates(year, month);
     const dayCount = dates.length;
-    const monthLabel = MONTHS_IT[month] + ' ' + year;
+    const monthName = MONTHS_IT[month];
+    const registroTitle = 'Prenotazioni ' + year + ' ' + monthName;
+    const spiaggiaTitle = 'Spiaggia ' + year + ' ' + monthName;
 
     const registroTable = buildRegistroTable(year, month, rooms, reservations);
     const spiaggiaBlock = buildSpiaggiaMonthBlock(year, month, umbrellas, assignments);
-    // Replace the spiaggia block's own title with one prefixed by "Spiaggia — "
+    // Replace the spiaggia block's own title with our chosen one
     const spiaggiaWithLabel = spiaggiaBlock.replace(
       /<div class="month-title">[\s\S]*?<\/div>/,
-      '<div class="month-title">Spiaggia — ' + escapeHtml(monthLabel) + '</div>'
+      '<div class="month-title">' + escapeHtml(spiaggiaTitle) + '</div>'
     );
 
     const body =
       '<div class="page page-registro">' +
-        '<div class="month-title">' + escapeHtml(monthLabel) + '</div>' +
+        '<div class="month-title">' + escapeHtml(registroTitle) + '</div>' +
         registroTable +
       '</div>' +
       '<div class="page page-spiaggia">' + spiaggiaWithLabel + '</div>';
@@ -480,7 +482,7 @@
       .page-spiaggia .reg-table .floor-row td { height: 3.5mm; }
     `;
 
-    return wrapPrintDocument(monthLabel, body, css);
+    return wrapPrintDocument(registroTitle, body, css);
   }
 
   async function printRegistro() {
