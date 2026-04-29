@@ -226,17 +226,21 @@
   }
 
   function registroCss(dayCount) {
-    // Layout budget for A4 landscape (297×210mm) with 3mm @page margins:
-    //   available height ≈ 204mm
+    // Layout budget for A4 landscape with 6mm @page margins (chosen to stay
+    // outside the non-printable hardware margin of any reasonable consumer
+    // printer — Brother/Canon/HP all guarantee printability inside 4-6mm,
+    // so 3mm was clipped/down-scaled on some drivers).
+    //
+    //   available height ≈ 198mm
     //   month title ............... 4mm
     //   thead row (top) ........... 4.5mm
-    //   5 floor rows × 3mm ........ 15mm
-    //   30 room rows × 5.0mm ...... 150mm
+    //   5 floor rows × 2.8mm ...... 14mm
+    //   30 room rows × 4.8mm ...... 144mm
     //   tfoot row (bottom) ........ 4.5mm
     //   borders + slack ........... ~25mm
-    // → fits in ~203mm.
+    // → fits in ~196mm with ~2mm slack.
     return `
-      @page { size: 297mm 210mm; margin: 3mm; }
+      @page { size: A4 landscape; margin: 6mm; }
       html, body { margin: 0; padding: 0; background: #fff; color: #000;
         font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
         -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -254,12 +258,12 @@
         overflow: hidden;
       }
       .reg-table thead th, .reg-table tfoot th { background: #fff; height: 4.5mm; padding: 0; }
-      .reg-table .day-h .day-n { font-size: 7.5pt; font-weight: 700; }
-      .reg-table .day-h .day-a { font-size: 5pt; color: #555; }
+      .reg-table .day-h .day-n { font-size: 7pt; font-weight: 700; }
+      .reg-table .day-h .day-a { font-size: 4.5pt; color: #555; }
       .reg-table .day-h.sat { background: #7f7f7f !important; }
-      .reg-table .room-cell { font-weight: 700; font-size: 9pt; text-align: center; padding: 0 2px; background: #fff; }
-      .reg-table .floor-row td { background: #7f7f7f !important; font-weight: 700; font-size: 8pt; text-align: left; padding: 0 4px; height: 3mm; color: #000; }
-      .reg-table tr.room-row td { height: 5mm; }
+      .reg-table .room-cell { font-weight: 700; font-size: 8.5pt; text-align: center; padding: 0 2px; background: #fff; }
+      .reg-table .floor-row td { background: #7f7f7f !important; font-weight: 700; font-size: 7.5pt; text-align: left; padding: 0 4px; height: 2.8mm; color: #000; }
+      .reg-table tr.room-row td { height: 4.8mm; }
       .reg-table td.empty.sat { background: #7f7f7f !important; }
       /* Bar cells must let their bar overhang into the neighbouring cells
          on each side (half-cell convention from the screen view). */
@@ -495,14 +499,33 @@
       doc.open();
       doc.write(html);
       doc.close();
-      const finish = () => {
-        try { iframe.contentWindow.focus(); iframe.contentWindow.print(); } catch (e) { console.error(e); }
-        // Remove the iframe a bit later so the print dialog has time to read it
-        setTimeout(() => { try { iframe.remove(); } catch (_) {} resolve(); }, 1500);
+
+      const triggerPrint = () => {
+        try { iframe.contentWindow.focus(); iframe.contentWindow.print(); }
+        catch (e) { console.error(e); }
+        // Keep the iframe around long enough for the print dialog to read it
+        setTimeout(() => { try { iframe.remove(); } catch (_) {} resolve(); }, 2000);
       };
-      // Wait for the iframe document to be ready
-      if (iframe.contentWindow.document.readyState === 'complete') setTimeout(finish, 50);
-      else iframe.addEventListener('load', () => setTimeout(finish, 50));
+
+      // Wait for the document AND any web fonts (Font Awesome) to be ready
+      // before calling print(). Without this, some printers receive boxes
+      // instead of icons because the font file hadn't downloaded yet.
+      const waitForReady = () => {
+        const cw = iframe.contentWindow;
+        const proceed = () => {
+          if (cw.document && cw.document.fonts && cw.document.fonts.ready) {
+            cw.document.fonts.ready
+              .then(() => setTimeout(triggerPrint, 100))
+              .catch(() => setTimeout(triggerPrint, 300));
+          } else {
+            // Fallback for browsers without the Font Loading API
+            setTimeout(triggerPrint, 400);
+          }
+        };
+        if (cw.document.readyState === 'complete') proceed();
+        else iframe.addEventListener('load', proceed, { once: true });
+      };
+      waitForReady();
     });
   }
 
