@@ -256,13 +256,23 @@
   function registroCss(dayCount, dims) {
     // Page geometry decided in computeDims(); CSS just consumes those mm.
     return `
-      @page { size: A4 landscape; margin: 10mm; }
+      /* @page margin: 0 + body padding: lets us draw our own margins
+         while denying the browser any room to inject its automatic
+         header (date/time on the left) and footer (URL/page number).
+         If the user kept "Intestazioni e piè di pagina" on in the dialog,
+         this is the only way to keep the print clean. */
+      @page { size: A4 landscape; margin: 0; }
       html, body { margin: 0; padding: 0; background: #fff; color: #000;
         font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
         -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .page {
+        padding: 10mm;
+        box-sizing: border-box;
+        min-height: 210mm;
+      }
       .month-title {
-        text-align: center; font-size: 12pt; font-weight: 800; margin: 0 0 1.5mm;
-        text-transform: uppercase; letter-spacing: 0.5px; line-height: 1;
+        text-align: center; font-size: 11pt; font-weight: 500; margin: 0 0 2mm;
+        line-height: 1; color: #000;
       }
       .reg-table { width: 100%; border-collapse: collapse; table-layout: fixed; page-break-inside: avoid; break-inside: avoid; }
       .reg-table tr { page-break-inside: avoid; break-inside: avoid; }
