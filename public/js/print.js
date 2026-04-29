@@ -230,9 +230,9 @@
   function computeDims(roomCount, floorCount, umbrellaCount, beachRowCount) {
     const PAGE_H = 210;        // mm — A4 landscape height
     const PAGE_MARGIN = 6;     // mm — @page margin
-    const TITLE_H = 4;         // mm
-    const HEADER_H = 4.5;      // mm — thead and tfoot
-    const FLOOR_H = 2.8;       // mm — section header rows
+    const TITLE_H = 7;         // mm — the month title is now ~16pt, taller
+    const HEADER_H = 5;        // mm — thead and tfoot (slightly taller for legibility)
+    const FLOOR_H = 3;         // mm — section header rows
     const SLACK = 4;           // mm — small safety so total never overflows
 
     const available = PAGE_H - 2 * PAGE_MARGIN - TITLE_H - 2 * HEADER_H - SLACK;
@@ -244,8 +244,8 @@
     const umbrellaH  = (available - beachReserved) / Math.max(1, umbrellaCount);
 
     return {
-      roomH:      Math.max(4, Math.min(7,   roomH)).toFixed(2),
-      umbrellaH:  Math.max(5, Math.min(9,   umbrellaH)).toFixed(2),
+      roomH:      Math.max(4.5, Math.min(7,   roomH)).toFixed(2),
+      umbrellaH:  Math.max(5.5, Math.min(9.5, umbrellaH)).toFixed(2),
       floorH:     FLOOR_H.toFixed(2)
     };
   }
@@ -257,7 +257,10 @@
       html, body { margin: 0; padding: 0; background: #fff; color: #000;
         font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
         -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .month-title { text-align: center; font-size: 11pt; font-weight: 700; margin: 0 0 1mm; text-transform: capitalize; line-height: 1; }
+      .month-title {
+        text-align: center; font-size: 16pt; font-weight: 800; margin: 0 0 2mm;
+        text-transform: uppercase; letter-spacing: 0.5px; line-height: 1;
+      }
       .reg-table { width: 100%; border-collapse: collapse; table-layout: fixed; page-break-inside: avoid; break-inside: avoid; }
       .reg-table tr { page-break-inside: avoid; break-inside: avoid; }
       .reg-table col.col-room { width: 5%; }
@@ -265,17 +268,17 @@
       .reg-table th, .reg-table td {
         border: 1px solid #888;
         padding: 0;
-        font-size: 7pt;
+        font-size: 8pt;
         line-height: 1;
         vertical-align: middle;
         overflow: hidden;
       }
-      .reg-table thead th, .reg-table tfoot th { background: #fff; height: 4.5mm; padding: 0; }
-      .reg-table .day-h .day-n { font-size: 7pt; font-weight: 700; }
-      .reg-table .day-h .day-a { font-size: 4.5pt; color: #555; }
+      .reg-table thead th, .reg-table tfoot th { background: #fff; height: 5mm; padding: 0; }
+      .reg-table .day-h .day-n { font-size: 8pt; font-weight: 700; }
+      .reg-table .day-h .day-a { font-size: 5pt; color: #555; }
       .reg-table .day-h.sat { background: #7f7f7f !important; }
-      .reg-table .room-cell { font-weight: 700; font-size: 8.5pt; text-align: center; padding: 0 2px; background: #fff; }
-      .reg-table .floor-row td { background: #7f7f7f !important; font-weight: 700; font-size: 7.5pt; text-align: left; padding: 0 4px; height: ${dims.floorH}mm; color: #000; }
+      .reg-table .room-cell { font-weight: 700; font-size: 9.5pt; text-align: center; padding: 0 2px; background: #fff; }
+      .reg-table .floor-row td { background: #7f7f7f !important; font-weight: 700; font-size: 8.5pt; text-align: left; padding: 0 4px; height: ${dims.floorH}mm; color: #000; }
       .reg-table tr.room-row td { height: ${dims.roomH}mm; }
       /* Spiaggia (page 2) gets its own row-height because there are typically
          fewer umbrellas than apartments — let the table fill the sheet. */
@@ -295,8 +298,8 @@
         left:  calc(100% / var(--cols, 1) / 2);
         right: calc(-100% / var(--cols, 1) / 2);
         display: flex; align-items: center;
-        padding: 0 4px;
-        font-size: 8pt; font-weight: 700; line-height: 1;
+        padding: 0 5px;
+        font-size: 9.5pt; font-weight: 700; line-height: 1;
         border: 1px solid #888;
         border-radius: 4px;
         box-sizing: border-box;
@@ -321,18 +324,18 @@
       .reg-table td.bar-cell .bar.bar-min     .bar-body { justify-content: center; }
       .reg-table td.bar-cell .bar .bar-icons {
         flex: 0 0 auto;
-        display: flex; align-items: center; gap: 2px;
-        padding-left: 4px;
-        font-size: 7.5pt;
+        display: flex; align-items: center; gap: 3px;
+        padding-left: 5px;
+        font-size: 9pt;
       }
       .reg-table td.bar-cell .bar .bar-icons i { line-height: 1; }
       /* Colour palette */
       .reg-table td.bar-cell.yellow .bar { background: #c5c5c5; color: #000; border-color: #8a8a8a; }
       .reg-table td.bar-cell.orange .bar { background: #fff; color: #000; border: 1px dashed #8a8a8a; }
       .reg-table td.bar-cell.blue   .bar { background: #0a84ff; color: #fff; border-color: #004a99; }
-      .reg-table .bar-name { font-weight: 700; overflow: hidden; white-space: nowrap; text-overflow: clip; min-width: 0; }
-      .reg-table .bar-ref { font-size: 6.5pt; background: rgba(0,0,0,0.15); padding: 0 3px; border-radius: 3px; white-space: nowrap; }
-      .reg-table .bar-price { font-size: 8pt; font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+      .reg-table .bar-name { font-weight: 700; font-size: 9.5pt; overflow: hidden; white-space: nowrap; text-overflow: clip; min-width: 0; }
+      .reg-table .bar-ref { font-size: 8pt; font-weight: 700; background: rgba(0,0,0,0.15); padding: 0 4px; border-radius: 3px; white-space: nowrap; }
+      .reg-table .bar-price { font-size: 9.5pt; font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
     `;
   }
 
