@@ -226,14 +226,16 @@
   }
 
   // Compute row heights so the table fully fills an A4 landscape page.
-  // Returns mm values for both Registro (page 1) and Spiaggia (page 2).
+  // We assume the browser's "Default" print margins (~10mm per side) are
+  // applied — that's what most users keep in the dialog. Sizing for that
+  // worst case means the page also fits when narrower margins are picked.
   function computeDims(roomCount, floorCount, umbrellaCount, beachRowCount) {
     const PAGE_H = 210;        // mm — A4 landscape height
-    const PAGE_MARGIN = 6;     // mm — @page margin
-    const TITLE_H = 7;         // mm — the month title is now ~16pt, taller
-    const HEADER_H = 5;        // mm — thead and tfoot (slightly taller for legibility)
-    const FLOOR_H = 3;         // mm — section header rows
-    const SLACK = 4;           // mm — small safety so total never overflows
+    const PAGE_MARGIN = 10;    // mm — assume browser default margins
+    const TITLE_H = 6;         // mm — 12pt title + 1.5mm bottom spacing
+    const HEADER_H = 4.5;      // mm — thead and tfoot
+    const FLOOR_H = 2.8;       // mm — section header rows
+    const SLACK = 6;           // mm — extra safety so the title never spills
 
     const available = PAGE_H - 2 * PAGE_MARGIN - TITLE_H - 2 * HEADER_H - SLACK;
 
@@ -245,8 +247,8 @@
     const umbrellaH  = (available - beachReserved) / Math.max(1, umbrellaCount);
 
     return {
-      roomH:      Math.max(4.5, Math.min(7,    roomH)).toFixed(2),
-      umbrellaH:  Math.max(5.5, Math.min(10,   umbrellaH)).toFixed(2),
+      roomH:      Math.max(4,   Math.min(6.5,  roomH)).toFixed(2),
+      umbrellaH:  Math.max(5,   Math.min(9,    umbrellaH)).toFixed(2),
       floorH:     FLOOR_H.toFixed(2)
     };
   }
@@ -254,12 +256,12 @@
   function registroCss(dayCount, dims) {
     // Page geometry decided in computeDims(); CSS just consumes those mm.
     return `
-      @page { size: A4 landscape; margin: 6mm; }
+      @page { size: A4 landscape; margin: 10mm; }
       html, body { margin: 0; padding: 0; background: #fff; color: #000;
         font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
         -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .month-title {
-        text-align: center; font-size: 16pt; font-weight: 800; margin: 0 0 2mm;
+        text-align: center; font-size: 12pt; font-weight: 800; margin: 0 0 1.5mm;
         text-transform: uppercase; letter-spacing: 0.5px; line-height: 1;
       }
       .reg-table { width: 100%; border-collapse: collapse; table-layout: fixed; page-break-inside: avoid; break-inside: avoid; }
