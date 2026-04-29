@@ -293,6 +293,11 @@
       .reg-table .room-cell { font-weight: 700; font-size: 9.5pt; text-align: center; padding: 0 2px; background: #fff; }
       .reg-table .floor-row td { background: #7f7f7f !important; font-weight: 700; font-size: 8.5pt; text-align: left; padding: 0 4px; height: ${dims.floorH}mm; color: #000; }
       .reg-table tr.room-row td { height: ${dims.roomH}mm; }
+      /* Thick black line under the last apartment row (49L) so the bottom
+         of the Registro is visually closed before the day-header footer. */
+      .page-registro .reg-table tbody tr:last-child td {
+        border-bottom: 2pt solid #000 !important;
+      }
       /* Spiaggia (page 2): wider left column to fit "{seq}  FILA N - X" labels,
          taller rows because there are no floor headers and fewer rows. */
       .page-spiaggia .reg-table col.col-room { width: 16%; }
