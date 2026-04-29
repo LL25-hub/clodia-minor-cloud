@@ -49,6 +49,28 @@
   function firstDayOf(year, month) { return iso(new Date(year, month, 1)); }
   function lastDayOf(year, month) { return iso(new Date(year, month + 1, 0)); }
 
+  // Edit a single umbrella's code in place. Triggered by clicking on the
+  // leftmost cell of any umbrella row in the Spiaggia table.
+  async function editUmbrellaCode(um) {
+    const ctx = um.row_label ? `${um.row_label} • attuale: ${um.code}` : `Generico • attuale: ${um.code}`;
+    const next = prompt(`Numero ombrellone (${ctx})\nNuovo numero:`, um.code);
+    if (next == null) return; // cancelled
+    const trimmed = String(next).trim();
+    if (!trimmed) return;
+    if (trimmed === String(um.code)) return;
+    try {
+      await window.api.beach.umbrellas.update(um.id, { code: trimmed });
+      // Refresh the local cache and re-render
+      state.umbrellas = await window.api.beach.umbrellas.getAll();
+      // Bust shared cache so the assign-modal sees the change too
+      if (window.__dataCache) window.__dataCache.umbrellas = state.umbrellas;
+      render();
+    } catch (err) {
+      const msg = (err && (err.message || err.error)) || 'Errore sconosciuto';
+      alert('Impossibile salvare: ' + msg + '\n(probabilmente il numero è già usato in questa fila)');
+    }
+  }
+
   async function loadMonth() {
     const monthStart = firstDayOf(state.year, state.month);
     const monthEnd = lastDayOf(state.year, state.month);
@@ -154,6 +176,12 @@
         const codeCell = document.createElement('td');
         codeCell.className = 'room-cell';
         codeCell.innerHTML = '<div class="room-number">' + um.code + '</div>';
+        codeCell.style.cursor = 'pointer';
+        codeCell.title = 'Clicca per cambiare il numero di questo ombrellone';
+        codeCell.addEventListener('click', e => {
+          e.stopPropagation();
+          editUmbrellaCode(um);
+        });
         row.appendChild(codeCell);
 
         // Flag each day with the active assignment, if any
