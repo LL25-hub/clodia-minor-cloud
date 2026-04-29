@@ -225,20 +225,33 @@
     return html;
   }
 
-  function registroCss(dayCount) {
-    // Layout budget for A4 landscape with 6mm @page margins (chosen to stay
-    // outside the non-printable hardware margin of any reasonable consumer
-    // printer — Brother/Canon/HP all guarantee printability inside 4-6mm,
-    // so 3mm was clipped/down-scaled on some drivers).
-    //
-    //   available height ≈ 198mm
-    //   month title ............... 4mm
-    //   thead row (top) ........... 4.5mm
-    //   5 floor rows × 2.8mm ...... 14mm
-    //   30 room rows × 4.8mm ...... 144mm
-    //   tfoot row (bottom) ........ 4.5mm
-    //   borders + slack ........... ~25mm
-    // → fits in ~196mm with ~2mm slack.
+  // Compute row heights so the table fully fills an A4 landscape page.
+  // Returns mm values for both Registro (page 1) and Spiaggia (page 2).
+  function computeDims(roomCount, floorCount, umbrellaCount, beachRowCount) {
+    const PAGE_H = 210;        // mm — A4 landscape height
+    const PAGE_MARGIN = 6;     // mm — @page margin
+    const TITLE_H = 4;         // mm
+    const HEADER_H = 4.5;      // mm — thead and tfoot
+    const FLOOR_H = 2.8;       // mm — section header rows
+    const SLACK = 4;           // mm — small safety so total never overflows
+
+    const available = PAGE_H - 2 * PAGE_MARGIN - TITLE_H - 2 * HEADER_H - SLACK;
+
+    const roomReserved  = floorCount * FLOOR_H;
+    const beachReserved = beachRowCount * FLOOR_H;
+
+    const roomH      = (available - roomReserved)  / Math.max(1, roomCount);
+    const umbrellaH  = (available - beachReserved) / Math.max(1, umbrellaCount);
+
+    return {
+      roomH:      Math.max(4, Math.min(7,   roomH)).toFixed(2),
+      umbrellaH:  Math.max(5, Math.min(9,   umbrellaH)).toFixed(2),
+      floorH:     FLOOR_H.toFixed(2)
+    };
+  }
+
+  function registroCss(dayCount, dims) {
+    // Page geometry decided in computeDims(); CSS just consumes those mm.
     return `
       @page { size: A4 landscape; margin: 6mm; }
       html, body { margin: 0; padding: 0; background: #fff; color: #000;
@@ -262,8 +275,12 @@
       .reg-table .day-h .day-a { font-size: 4.5pt; color: #555; }
       .reg-table .day-h.sat { background: #7f7f7f !important; }
       .reg-table .room-cell { font-weight: 700; font-size: 8.5pt; text-align: center; padding: 0 2px; background: #fff; }
-      .reg-table .floor-row td { background: #7f7f7f !important; font-weight: 700; font-size: 7.5pt; text-align: left; padding: 0 4px; height: 2.8mm; color: #000; }
-      .reg-table tr.room-row td { height: 4.8mm; }
+      .reg-table .floor-row td { background: #7f7f7f !important; font-weight: 700; font-size: 7.5pt; text-align: left; padding: 0 4px; height: ${dims.floorH}mm; color: #000; }
+      .reg-table tr.room-row td { height: ${dims.roomH}mm; }
+      /* Spiaggia (page 2) gets its own row-height because there are typically
+         fewer umbrellas than apartments — let the table fill the sheet. */
+      .page-spiaggia .reg-table tr.room-row td { height: ${dims.umbrellaH}mm; }
+      .page-spiaggia .reg-table .floor-row td { height: ${dims.floorH}mm; }
       .reg-table td.empty.sat { background: #7f7f7f !important; }
       /* Bar cells must let their bar overhang into the neighbouring cells
          on each side (half-cell convention from the screen view). */
@@ -274,13 +291,14 @@
       .reg-table td.bar-cell .bg-stripe { position: absolute; top: 0; bottom: 0; background: #7f7f7f; z-index: 0; }
       .reg-table td.bar-cell .bar {
         position: absolute; z-index: 2;
-        top: 0.3mm; bottom: 0.3mm;
+        top: 0.4mm; bottom: 0.4mm;
         left:  calc(100% / var(--cols, 1) / 2);
         right: calc(-100% / var(--cols, 1) / 2);
         display: flex; align-items: center;
-        padding: 0 3px;
+        padding: 0 4px;
         font-size: 8pt; font-weight: 700; line-height: 1;
         border: 1px solid #888;
+        border-radius: 4px;
         box-sizing: border-box;
       }
       /* Cross-month: no overhang on the closed side, hard squared corner. */
@@ -295,7 +313,7 @@
       /* Bar internal layout: body centered, icons pinned to the right. */
       .reg-table td.bar-cell .bar .bar-body {
         flex: 1 1 auto; min-width: 0;
-        display: flex; align-items: center; gap: 3px;
+        display: flex; align-items: center; gap: 4px;
         overflow: hidden;
       }
       .reg-table td.bar-cell .bar.bar-full    .bar-body { justify-content: center; }
@@ -537,9 +555,14 @@
     const registroTitle = 'Prenotazioni ' + year + ' ' + monthName;
     const spiaggiaTitle = 'Spiaggia ' + year + ' ' + monthName;
 
+    // Count distinct floors / row labels actually present in this dataset,
+    // so the row-height math reflects what will be on the page.
+    const floorCount = new Set(rooms.map(r => r.floor || 'Altro')).size || 1;
+    const beachRowCount = new Set(umbrellas.map(u => u.row_label || 'Fila')).size || 1;
+    const dims = computeDims(rooms.length, floorCount, umbrellas.length, beachRowCount);
+
     const registroTable = buildRegistroTable(year, month, rooms, reservations);
     const spiaggiaBlock = buildSpiaggiaMonthBlock(year, month, umbrellas, assignments);
-    // Replace the spiaggia block's own title with our chosen one
     const spiaggiaWithLabel = spiaggiaBlock.replace(
       /<div class="month-title">[\s\S]*?<\/div>/,
       '<div class="month-title">' + escapeHtml(spiaggiaTitle) + '</div>'
@@ -552,13 +575,9 @@
       '</div>' +
       '<div class="page page-spiaggia">' + spiaggiaWithLabel + '</div>';
 
-    const css = registroCss(dayCount) + `
+    const css = registroCss(dayCount, dims) + `
       .page { page-break-after: always; break-after: page; }
       .page:last-child { page-break-after: auto; break-after: auto; }
-      /* Spiaggia has fewer rows than Registro (~20 vs 30) so we can
-         relax the row height a bit on page 2 for legibility. */
-      .page-spiaggia .reg-table tr.room-row td { height: 6mm; }
-      .page-spiaggia .reg-table .floor-row td { height: 3.5mm; }
     `;
 
     return wrapPrintDocument(registroTitle, body, css);
