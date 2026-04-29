@@ -49,15 +49,16 @@
   function firstDayOf(year, month) { return iso(new Date(year, month, 1)); }
   function lastDayOf(year, month) { return iso(new Date(year, month + 1, 0)); }
 
-  // Display label for an umbrella. The user requested every row to read
-  // "FILA N - <number>" (no separate fila header). Generici (no row label)
-  // just show the bare umbrella number.
-  function formatUmbrellaLabel(um) {
+  // Display label for an umbrella.
+  //   File:     "{seq}  FILA <row> - <code>"   (e.g. "1  FILA 2 - 1")
+  //   Generici: just the bare code (left-aligned via the .generic class)
+  // `seq` is the 1-based position of the umbrella across the full sorted
+  // roster, so the user can see at a glance which is the Nth ombrellone.
+  function formatUmbrellaLabel(um, seq) {
     const code = um && um.code != null ? String(um.code) : '';
     const row = um && um.row_label ? String(um.row_label) : '';
     if (!row || /^generic/i.test(row)) return code;
-    // Compact "Fila 2" → "FILA 2 - 3"
-    return row.toUpperCase() + ' - ' + code;
+    return (seq != null ? seq + '  ' : '') + row.toUpperCase() + ' - ' + code;
   }
 
   function escapeLabel(s) {
@@ -174,6 +175,7 @@
     tbody.innerHTML = '';
 
     const groups = groupByRow(state.umbrellas);
+    let seq = 1;
 
     for (const [rowLabel, list] of groups) {
       list.forEach(um => {
@@ -182,7 +184,8 @@
         const isGeneric = !um.row_label || /^generic/i.test(um.row_label);
         const codeCell = document.createElement('td');
         codeCell.className = 'room-cell' + (isGeneric ? ' generic' : '');
-        codeCell.innerHTML = '<div class="room-number">' + escapeLabel(formatUmbrellaLabel(um)) + '</div>';
+        codeCell.innerHTML = '<div class="room-number">' + escapeLabel(formatUmbrellaLabel(um, seq)) + '</div>';
+        seq++;
         codeCell.style.cursor = 'pointer';
         codeCell.title = 'Clicca per cambiare il numero di questo ombrellone';
         codeCell.addEventListener('click', e => {

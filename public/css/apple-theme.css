@@ -1116,12 +1116,13 @@ canvas { background: transparent; }
   position: sticky;
   left: 0;
   z-index: 2;
-  width: 90px !important;
-  max-width: 90px !important;
-  min-width: 90px;
+  width: 130px !important;
+  max-width: 130px !important;
+  min-width: 130px;
   text-align: center;
-  padding: 0.3rem 0.3rem !important;
-  font-size: 0.82rem;
+  padding: 0.3rem 0.4rem !important;
+  font-size: 0.8rem;
+  white-space: nowrap;
 }
 /* Generici: bare numeric label, left-aligned (no fila context) */
 #beach-table .room-cell.generic {

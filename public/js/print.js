@@ -293,14 +293,16 @@
       .reg-table .room-cell { font-weight: 700; font-size: 9.5pt; text-align: center; padding: 0 2px; background: #fff; }
       .reg-table .floor-row td { background: #7f7f7f !important; font-weight: 700; font-size: 8.5pt; text-align: left; padding: 0 4px; height: ${dims.floorH}mm; color: #000; }
       .reg-table tr.room-row td { height: ${dims.roomH}mm; }
-      /* Spiaggia (page 2): wider left column to fit "FILA N - X" labels,
+      /* Spiaggia (page 2): wider left column to fit "{seq}  FILA N - X" labels,
          taller rows because there are no floor headers and fewer rows. */
-      .page-spiaggia .reg-table col.col-room { width: 11%; }
-      .page-spiaggia .reg-table col.col-day  { width: ${(89/dayCount).toFixed(4)}%; }
+      .page-spiaggia .reg-table col.col-room { width: 16%; }
+      .page-spiaggia .reg-table col.col-day  { width: ${(84/dayCount).toFixed(4)}%; }
       .page-spiaggia .reg-table tr.room-row td { height: ${dims.umbrellaH}mm; }
-      .page-spiaggia .reg-table .room-cell { font-size: 8.5pt; padding: 0 4px; }
+      .page-spiaggia .reg-table .room-cell {
+        font-size: 8.5pt; padding: 0 4px; white-space: nowrap; font-weight: 600;
+      }
       /* Generici (no fila): just the number, aligned to the left */
-      .page-spiaggia .reg-table .room-cell.generic { text-align: left; padding-left: 4px; }
+      .page-spiaggia .reg-table .room-cell.generic { text-align: left; padding-left: 6px; }
       .reg-table td.empty.sat { background: #7f7f7f !important; }
       /* Bar cells must let their bar overhang into the neighbouring cells
          on each side (half-cell convention from the screen view). */
@@ -392,7 +394,8 @@
     html += '<tbody>';
 
     // No floor-row separators on the Spiaggia page — each umbrella row
-    // includes its fila in the leftmost cell ("FILA 2 - 3").
+    // includes its fila in the leftmost cell ("1  FILA 2 - 1").
+    let seq = 1;
     for (const [, list] of byRow) {
       list.forEach(um => {
         const cellAss = new Array(dayCount).fill(null);
@@ -404,10 +407,11 @@
         });
         const isGeneric = !um.row_label || /^generic/i.test(um.row_label);
         const label = isGeneric
-          ? um.code
-          : String(um.row_label).toUpperCase() + ' - ' + um.code;
+          ? String(um.code)
+          : seq + '  ' + String(um.row_label).toUpperCase() + ' - ' + um.code;
         const cellCls = 'room-cell' + (isGeneric ? ' generic' : '');
         html += '<tr class="room-row"><td class="' + cellCls + '">' + escapeHtml(label) + '</td>';
+        seq++;
         let i = 0;
         while (i < dayCount) {
           if (!cellAss[i]) {
