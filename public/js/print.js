@@ -271,8 +271,8 @@
         min-height: 210mm;
       }
       .month-title {
-        text-align: center; font-size: 11pt; font-weight: 500; margin: 0 0 2mm;
-        line-height: 1; color: #000;
+        text-align: center; font-size: 12pt; font-weight: 800; margin: 0 0 1.5mm;
+        text-transform: uppercase; letter-spacing: 0.5px; line-height: 1; color: #000;
       }
       .reg-table { width: 100%; border-collapse: collapse; table-layout: fixed; page-break-inside: avoid; break-inside: avoid; }
       .reg-table tr { page-break-inside: avoid; break-inside: avoid; }
@@ -296,7 +296,7 @@
       /* Thick black line under the last apartment row (49L) so the bottom
          of the Registro is visually closed before the day-header footer. */
       .page-registro .reg-table tbody tr:last-child td {
-        border-bottom: 2pt solid #000 !important;
+        border-bottom: 4pt solid #000 !important;
       }
       /* Spiaggia (page 2): wider left column to fit "{seq}  FILA N - X" labels,
          taller rows because there are no floor headers and fewer rows. */
