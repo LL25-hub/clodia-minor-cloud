@@ -179,8 +179,9 @@
       list.forEach(um => {
         const row = document.createElement('tr');
 
+        const isGeneric = !um.row_label || /^generic/i.test(um.row_label);
         const codeCell = document.createElement('td');
-        codeCell.className = 'room-cell';
+        codeCell.className = 'room-cell' + (isGeneric ? ' generic' : '');
         codeCell.innerHTML = '<div class="room-number">' + escapeLabel(formatUmbrellaLabel(um)) + '</div>';
         codeCell.style.cursor = 'pointer';
         codeCell.title = 'Clicca per cambiare il numero di questo ombrellone';

@@ -299,6 +299,8 @@
       .page-spiaggia .reg-table col.col-day  { width: ${(89/dayCount).toFixed(4)}%; }
       .page-spiaggia .reg-table tr.room-row td { height: ${dims.umbrellaH}mm; }
       .page-spiaggia .reg-table .room-cell { font-size: 8.5pt; padding: 0 4px; }
+      /* Generici (no fila): just the number, aligned to the left */
+      .page-spiaggia .reg-table .room-cell.generic { text-align: left; padding-left: 4px; }
       .reg-table td.empty.sat { background: #7f7f7f !important; }
       /* Bar cells must let their bar overhang into the neighbouring cells
          on each side (half-cell convention from the screen view). */
@@ -400,10 +402,12 @@
             if (dates[i] >= a.start_date && dates[i] <= a.end_date) cellAss[i] = a;
           }
         });
-        const label = um.row_label && !/^generic/i.test(um.row_label)
-          ? String(um.row_label).toUpperCase() + ' - ' + um.code
-          : um.code;
-        html += '<tr class="room-row"><td class="room-cell">' + escapeHtml(label) + '</td>';
+        const isGeneric = !um.row_label || /^generic/i.test(um.row_label);
+        const label = isGeneric
+          ? um.code
+          : String(um.row_label).toUpperCase() + ' - ' + um.code;
+        const cellCls = 'room-cell' + (isGeneric ? ' generic' : '');
+        html += '<tr class="room-row"><td class="' + cellCls + '">' + escapeHtml(label) + '</td>';
         let i = 0;
         while (i < dayCount) {
           if (!cellAss[i]) {
