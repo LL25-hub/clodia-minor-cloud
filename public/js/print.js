@@ -238,14 +238,15 @@
     const available = PAGE_H - 2 * PAGE_MARGIN - TITLE_H - 2 * HEADER_H - SLACK;
 
     const roomReserved  = floorCount * FLOOR_H;
-    const beachReserved = beachRowCount * FLOOR_H;
+    // Spiaggia no longer prints floor headers (each row is self-labelled).
+    const beachReserved = 0;
 
     const roomH      = (available - roomReserved)  / Math.max(1, roomCount);
     const umbrellaH  = (available - beachReserved) / Math.max(1, umbrellaCount);
 
     return {
-      roomH:      Math.max(4.5, Math.min(7,   roomH)).toFixed(2),
-      umbrellaH:  Math.max(5.5, Math.min(9.5, umbrellaH)).toFixed(2),
+      roomH:      Math.max(4.5, Math.min(7,    roomH)).toFixed(2),
+      umbrellaH:  Math.max(5.5, Math.min(10,   umbrellaH)).toFixed(2),
       floorH:     FLOOR_H.toFixed(2)
     };
   }
@@ -280,10 +281,12 @@
       .reg-table .room-cell { font-weight: 700; font-size: 9.5pt; text-align: center; padding: 0 2px; background: #fff; }
       .reg-table .floor-row td { background: #7f7f7f !important; font-weight: 700; font-size: 8.5pt; text-align: left; padding: 0 4px; height: ${dims.floorH}mm; color: #000; }
       .reg-table tr.room-row td { height: ${dims.roomH}mm; }
-      /* Spiaggia (page 2) gets its own row-height because there are typically
-         fewer umbrellas than apartments — let the table fill the sheet. */
+      /* Spiaggia (page 2): wider left column to fit "FILA N - X" labels,
+         taller rows because there are no floor headers and fewer rows. */
+      .page-spiaggia .reg-table col.col-room { width: 11%; }
+      .page-spiaggia .reg-table col.col-day  { width: ${(89/dayCount).toFixed(4)}%; }
       .page-spiaggia .reg-table tr.room-row td { height: ${dims.umbrellaH}mm; }
-      .page-spiaggia .reg-table .floor-row td { height: ${dims.floorH}mm; }
+      .page-spiaggia .reg-table .room-cell { font-size: 8.5pt; padding: 0 4px; }
       .reg-table td.empty.sat { background: #7f7f7f !important; }
       /* Bar cells must let their bar overhang into the neighbouring cells
          on each side (half-cell convention from the screen view). */
@@ -374,8 +377,9 @@
     html += '<thead>' + headerRow + '</thead>';
     html += '<tbody>';
 
-    for (const [rowLabel, list] of byRow) {
-      html += '<tr class="floor-row"><td colspan="' + (dayCount + 1) + '">' + escapeHtml(rowLabel) + '</td></tr>';
+    // No floor-row separators on the Spiaggia page — each umbrella row
+    // includes its fila in the leftmost cell ("FILA 2 - 3").
+    for (const [, list] of byRow) {
       list.forEach(um => {
         const cellAss = new Array(dayCount).fill(null);
         assignments.forEach(a => {
@@ -384,7 +388,10 @@
             if (dates[i] >= a.start_date && dates[i] <= a.end_date) cellAss[i] = a;
           }
         });
-        html += '<tr class="room-row"><td class="room-cell">' + escapeHtml(um.code) + '</td>';
+        const label = um.row_label && !/^generic/i.test(um.row_label)
+          ? String(um.row_label).toUpperCase() + ' - ' + um.code
+          : um.code;
+        html += '<tr class="room-row"><td class="room-cell">' + escapeHtml(label) + '</td>';
         let i = 0;
         while (i < dayCount) {
           if (!cellAss[i]) {

@@ -49,6 +49,23 @@
   function firstDayOf(year, month) { return iso(new Date(year, month, 1)); }
   function lastDayOf(year, month) { return iso(new Date(year, month + 1, 0)); }
 
+  // Display label for an umbrella. The user requested every row to read
+  // "FILA N - <number>" (no separate fila header). Generici (no row label)
+  // just show the bare umbrella number.
+  function formatUmbrellaLabel(um) {
+    const code = um && um.code != null ? String(um.code) : '';
+    const row = um && um.row_label ? String(um.row_label) : '';
+    if (!row || /^generic/i.test(row)) return code;
+    // Compact "Fila 2" → "FILA 2 - 3"
+    return row.toUpperCase() + ' - ' + code;
+  }
+
+  function escapeLabel(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[m]));
+  }
+
   // Edit a single umbrella's code in place. Triggered by clicking on the
   // leftmost cell of any umbrella row in the Spiaggia table.
   async function editUmbrellaCode(um) {
@@ -159,23 +176,12 @@
     const groups = groupByRow(state.umbrellas);
 
     for (const [rowLabel, list] of groups) {
-      // Row header
-      const header = document.createElement('tr');
-      header.className = 'floor-header';
-      const th = document.createElement('td');
-      th.colSpan = dates.length + 1;
-      th.textContent = rowLabel;
-      th.style.padding = '4px 8px';
-      th.style.fontSize = '0.85rem';
-      header.appendChild(th);
-      tbody.appendChild(header);
-
       list.forEach(um => {
         const row = document.createElement('tr');
 
         const codeCell = document.createElement('td');
         codeCell.className = 'room-cell';
-        codeCell.innerHTML = '<div class="room-number">' + um.code + '</div>';
+        codeCell.innerHTML = '<div class="room-number">' + escapeLabel(formatUmbrellaLabel(um)) + '</div>';
         codeCell.style.cursor = 'pointer';
         codeCell.title = 'Clicca per cambiare il numero di questo ombrellone';
         codeCell.addEventListener('click', e => {
