@@ -168,6 +168,20 @@
               });
             }
 
+            // Right-side icons (mirror app.js logic)
+            const hasBeach = (cur.has_beach == 1 || cur.has_beach === true);
+            const isPaid = (cur.is_paid == 1 || cur.is_paid === true);
+            const hasDeposit = (cur.has_deposit == 1 || cur.has_deposit === true);
+            const iconParts = [];
+            if (hasBeach) iconParts.push('<i class="fas fa-umbrella-beach"></i>');
+            if (isPaid) iconParts.push('<i class="fas fa-check-circle"></i>');
+            if (hasDeposit && !isPaid) iconParts.push('<i class="fas fa-coins"></i>');
+            const hasIcons = iconParts.length > 0;
+            // Same heuristic as the screen: each visible label takes ~3 day-cells.
+            const labelsCount = 1 /* name */ + (refDM ? 1 : 0) + (priceRev ? 1 : 0);
+            const iconsThreshold = hasIcons ? Math.max(7, labelsCount * 3 + 1) : 0;
+            const showIcons = hasIcons && span > iconsThreshold;
+
             // Tiered content based on available width:
             //   span ≥ 5 → ref (left) + full name (center) + price (right)
             //   span 3–4 → first name (left) + ref (right), no price
@@ -176,21 +190,27 @@
             if (span >= 5) mode = 'full';
             else if (span >= 3) mode = 'compact';
 
-            let inner = '';
+            let bodyInner = '';
             if (mode === 'full') {
-              if (refDM) inner += '<span class="bar-ref">' + refDM + '</span>';
-              inner += '<span class="bar-name">' + fullNameEsc + '</span>';
-              if (priceRev) inner += '<span class="bar-price">' + priceRev + '</span>';
+              if (refDM) bodyInner += '<span class="bar-ref">' + refDM + '</span>';
+              bodyInner += '<span class="bar-name">' + fullNameEsc + '</span>';
+              if (priceRev) bodyInner += '<span class="bar-price">' + priceRev + '</span>';
             } else if (mode === 'compact') {
-              inner += '<span class="bar-name">' + firstWordEsc + '</span>';
-              if (refDM) inner += '<span class="bar-ref">' + refDM + '</span>';
+              bodyInner += '<span class="bar-name">' + firstWordEsc + '</span>';
+              if (refDM) bodyInner += '<span class="bar-ref">' + refDM + '</span>';
             } else {
-              inner += '<span class="bar-name">' + firstWordEsc + '</span>';
+              bodyInner += '<span class="bar-name">' + firstWordEsc + '</span>';
             }
+            const iconsHtml = showIcons ? '<span class="bar-icons">' + iconParts.join('') + '</span>' : '';
 
-            html += '<td class="bar-cell ' + color + (fromPrev ? ' from-prev' : '') + (toNext ? ' to-next' : '') + '" colspan="' + span + '">';
+            html += '<td class="bar-cell ' + color + (fromPrev ? ' from-prev' : '') + (toNext ? ' to-next' : '') + '"' +
+                    ' style="--cols:' + span + '"' +
+                    ' colspan="' + span + '">';
             html += stripes;
-            html += '<div class="bar bar-' + mode + '">' + inner + '</div></td>';
+            html += '<div class="bar bar-' + mode + '">' +
+                      '<span class="bar-body">' + bodyInner + '</span>' +
+                      iconsHtml +
+                    '</div></td>';
             i = j;
           }
         }
@@ -241,24 +261,53 @@
       .reg-table .floor-row td { background: #7f7f7f !important; font-weight: 700; font-size: 8pt; text-align: left; padding: 0 4px; height: 3mm; color: #000; }
       .reg-table tr.room-row td { height: 5mm; }
       .reg-table td.empty.sat { background: #7f7f7f !important; }
-      .reg-table td.bar-cell { position: relative; padding: 0; background: transparent; }
-      .reg-table td.bar-cell .bg-stripe { position: absolute; top: 0; bottom: 0; background: #7f7f7f; }
+      /* Bar cells must let their bar overhang into the neighbouring cells
+         on each side (half-cell convention from the screen view). */
+      .reg-table td.bar-cell {
+        position: relative; padding: 0; background: transparent;
+        overflow: visible;
+      }
+      .reg-table td.bar-cell .bg-stripe { position: absolute; top: 0; bottom: 0; background: #7f7f7f; z-index: 0; }
       .reg-table td.bar-cell .bar {
-        position: relative; z-index: 2;
-        margin: 0.2mm 0; height: calc(100% - 0.4mm);
-        display: flex; align-items: center; gap: 3px;
+        position: absolute; z-index: 2;
+        top: 0.3mm; bottom: 0.3mm;
+        left:  calc(100% / var(--cols, 1) / 2);
+        right: calc(-100% / var(--cols, 1) / 2);
+        display: flex; align-items: center;
         padding: 0 3px;
         font-size: 8pt; font-weight: 700; line-height: 1;
         border: 1px solid #888;
+        box-sizing: border-box;
       }
-      .reg-table td.bar-cell .bar.bar-full    { justify-content: center; }
-      .reg-table td.bar-cell .bar.bar-compact { justify-content: space-between; }
-      .reg-table td.bar-cell .bar.bar-min     { justify-content: center; }
+      /* Cross-month: no overhang on the closed side, hard squared corner. */
+      .reg-table td.bar-cell.from-prev .bar {
+        left: 0;
+        border-top-left-radius: 0; border-bottom-left-radius: 0; border-left-width: 3px;
+      }
+      .reg-table td.bar-cell.to-next .bar {
+        right: 0;
+        border-top-right-radius: 0; border-bottom-right-radius: 0; border-right-width: 3px;
+      }
+      /* Bar internal layout: body centered, icons pinned to the right. */
+      .reg-table td.bar-cell .bar .bar-body {
+        flex: 1 1 auto; min-width: 0;
+        display: flex; align-items: center; gap: 3px;
+        overflow: hidden;
+      }
+      .reg-table td.bar-cell .bar.bar-full    .bar-body { justify-content: center; }
+      .reg-table td.bar-cell .bar.bar-compact .bar-body { justify-content: space-between; }
+      .reg-table td.bar-cell .bar.bar-min     .bar-body { justify-content: center; }
+      .reg-table td.bar-cell .bar .bar-icons {
+        flex: 0 0 auto;
+        display: flex; align-items: center; gap: 2px;
+        padding-left: 4px;
+        font-size: 7.5pt;
+      }
+      .reg-table td.bar-cell .bar .bar-icons i { line-height: 1; }
+      /* Colour palette */
       .reg-table td.bar-cell.yellow .bar { background: #c5c5c5; color: #000; border-color: #8a8a8a; }
       .reg-table td.bar-cell.orange .bar { background: #fff; color: #000; border: 1px dashed #8a8a8a; }
       .reg-table td.bar-cell.blue   .bar { background: #0a84ff; color: #fff; border-color: #004a99; }
-      .reg-table td.bar-cell.from-prev .bar { border-top-left-radius: 0; border-bottom-left-radius: 0; border-left-width: 3px; }
-      .reg-table td.bar-cell.to-next   .bar { border-top-right-radius: 0; border-bottom-right-radius: 0; border-right-width: 3px; }
       .reg-table .bar-name { font-weight: 700; overflow: hidden; white-space: nowrap; text-overflow: clip; min-width: 0; }
       .reg-table .bar-ref { font-size: 6.5pt; background: rgba(0,0,0,0.15); padding: 0 3px; border-radius: 3px; white-space: nowrap; }
       .reg-table .bar-price { font-size: 8pt; font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -329,22 +378,26 @@
             const firstWord = (fullName.match(/^\s*(\S+)/) || [, fullName])[1];
             const refDM = escapeHtml(refDayMonthOnly(r.reference));
 
-            let mode = 'min', inner = '';
+            let mode = 'min', bodyInner = '';
             if (span >= 5) mode = 'full';
             else if (span >= 3) mode = 'compact';
 
             if (mode === 'full') {
-              if (refDM) inner += '<span class="bar-ref">' + refDM + '</span>';
-              inner += '<span class="bar-name">' + escapeHtml(fullName) + '</span>';
+              if (refDM) bodyInner += '<span class="bar-ref">' + refDM + '</span>';
+              bodyInner += '<span class="bar-name">' + escapeHtml(fullName) + '</span>';
             } else if (mode === 'compact') {
-              inner += '<span class="bar-name">' + escapeHtml(firstWord) + '</span>';
-              if (refDM) inner += '<span class="bar-ref">' + refDM + '</span>';
+              bodyInner += '<span class="bar-name">' + escapeHtml(firstWord) + '</span>';
+              if (refDM) bodyInner += '<span class="bar-ref">' + refDM + '</span>';
             } else {
-              inner += '<span class="bar-name">' + escapeHtml(firstWord) + '</span>';
+              bodyInner += '<span class="bar-name">' + escapeHtml(firstWord) + '</span>';
             }
 
-            html += '<td class="bar-cell ' + color + '" colspan="' + span + '">';
-            html += '<div class="bar bar-' + mode + '">' + inner + '</div>';
+            html += '<td class="bar-cell ' + color + '"' +
+                    ' style="--cols:' + span + '"' +
+                    ' colspan="' + span + '">';
+            html += '<div class="bar bar-' + mode + '">' +
+                      '<span class="bar-body">' + bodyInner + '</span>' +
+                    '</div>';
             html += '</td>';
             i = j;
           }
@@ -421,8 +474,11 @@
   }
 
   function wrapPrintDocument(title, body, css) {
+    // Pull Font Awesome from the same CDN the app uses so we can show
+    // the umbrella / paid / deposit icons inside the printed bars.
+    const faLink = '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">';
     return '<!doctype html><html lang="it"><head><meta charset="utf-8"><title>' + escapeHtml(title) +
-      '</title><style>' + css + '</style></head><body>' +
+      '</title>' + faLink + '<style>' + css + '</style></head><body>' +
       (body.includes('month-title') || body.includes('sheet') ? body : '<div class="month-title">' + escapeHtml(title) + '</div>' + body) +
       '</body></html>';
   }
