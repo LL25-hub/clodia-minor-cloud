@@ -232,7 +232,6 @@
   function computeDims(roomCount, floorCount, umbrellaCount, beachRowCount) {
     const PAGE_H = 210;        // mm — A4 landscape height
     const PAGE_MARGIN = 10;    // mm — @page margin (matches browser default)
-    const PAGE_HEADER_H = 5.5; // mm — our custom page-header strip
     const HEADER_H = 4.5;      // mm — thead and tfoot
     const FLOOR_H = 2.8;       // mm — section header rows
     // SLACK absorbs the per-row border thickness of border-collapse tables
@@ -241,7 +240,7 @@
     // 2nd sheet of its section.
     const SLACK = 14;          // mm
 
-    const available = PAGE_H - 2 * PAGE_MARGIN - PAGE_HEADER_H - 2 * HEADER_H - SLACK;
+    const available = PAGE_H - 2 * PAGE_MARGIN - 2 * HEADER_H - SLACK;
 
     const roomReserved  = floorCount * FLOOR_H;
     // Spiaggia no longer prints floor headers (each row is self-labelled).
@@ -260,20 +259,14 @@
   function registroCss(dayCount, dims) {
     // Page geometry decided in computeDims(); CSS just consumes those mm.
     return `
+      /* @page margin leaves room for the browser's automatic intestazione
+         (data/ora a sinistra, titolo del documento a destra). To see it,
+         in the print dialog under "Altre impostazioni" keep
+         "Intestazioni e piè di pagina" attivato. */
       @page { size: A4 landscape; margin: 10mm; }
       html, body { margin: 0; padding: 0; background: #fff; color: #000;
         font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
         -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      /* Custom page intestazione: data/ora a sinistra, titolo a destra.
-         Si rende su ogni .page (registro + spiaggia). */
-      .page-header {
-        display: flex; align-items: baseline; justify-content: space-between;
-        font-size: 9pt; line-height: 1; color: #444;
-        padding: 0 0 1.2mm 0; margin: 0 0 1.5mm 0;
-        border-bottom: 0.5pt solid #aaa;
-      }
-      .page-header .ph-left  { font-variant-numeric: tabular-nums; }
-      .page-header .ph-right { font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; }
       .month-title { display: none; }
       .reg-table { width: 100%; border-collapse: collapse; table-layout: fixed; page-break-inside: avoid; break-inside: avoid; }
       .reg-table tr { page-break-inside: avoid; break-inside: avoid; }
@@ -605,17 +598,9 @@
       ''
     );
 
-    // Build the data/ora label once per print operation
-    const now = new Date();
-    const dateStr = now.toLocaleDateString('it-IT') + ' ' +
-      now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
-    const headerHtml = (rightTitle) =>
-      '<div class="page-header"><span class="ph-left">' + escapeHtml(dateStr) +
-      '</span><span class="ph-right">' + escapeHtml(rightTitle) + '</span></div>';
-
     const body =
-      '<div class="page page-registro">' + headerHtml(registroTitle) + registroTable + '</div>' +
-      '<div class="page page-spiaggia">' + headerHtml(spiaggiaTitle) + spiaggiaStripped + '</div>';
+      '<div class="page page-registro">' + registroTable + '</div>' +
+      '<div class="page page-spiaggia">' + spiaggiaStripped + '</div>';
 
     const css = registroCss(dayCount, dims) + `
       .page { page-break-after: always; break-after: page; }
