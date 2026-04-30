@@ -231,11 +231,11 @@
   // worst case means the page also fits when narrower margins are picked.
   function computeDims(roomCount, floorCount, umbrellaCount, beachRowCount) {
     const PAGE_H = 210;        // mm — A4 landscape height
-    const PAGE_MARGIN = 10;    // mm — assume browser default margins
-    const TITLE_H = 6;         // mm — 12pt title + 1.5mm bottom spacing
+    const PAGE_MARGIN = 10;    // mm — @page margin (matches browser default)
+    const TITLE_H = 0;         // mm — no in-body title, browser handles header
     const HEADER_H = 4.5;      // mm — thead and tfoot
     const FLOOR_H = 2.8;       // mm — section header rows
-    const SLACK = 6;           // mm — extra safety so the title never spills
+    const SLACK = 6;           // mm — safety against sub-pixel rounding
 
     const available = PAGE_H - 2 * PAGE_MARGIN - TITLE_H - 2 * HEADER_H - SLACK;
 
@@ -256,24 +256,14 @@
   function registroCss(dayCount, dims) {
     // Page geometry decided in computeDims(); CSS just consumes those mm.
     return `
-      /* @page margin: 0 + body padding: lets us draw our own margins
-         while denying the browser any room to inject its automatic
-         header (date/time on the left) and footer (URL/page number).
-         If the user kept "Intestazioni e piè di pagina" on in the dialog,
-         this is the only way to keep the print clean. */
-      @page { size: A4 landscape; margin: 0; }
+      /* Restore the browser-managed margins so the print dialog header
+         (date/time on the left, document title on the right) shows up
+         again as the user requested. No custom title in the body. */
+      @page { size: A4 landscape; margin: 10mm; }
       html, body { margin: 0; padding: 0; background: #fff; color: #000;
         font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
         -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .page {
-        padding: 10mm;
-        box-sizing: border-box;
-        min-height: 210mm;
-      }
-      .month-title {
-        text-align: center; font-size: 12pt; font-weight: 800; margin: 0 0 1.5mm;
-        text-transform: uppercase; letter-spacing: 0.5px; line-height: 1; color: #000;
-      }
+      .month-title { display: none; }
       .reg-table { width: 100%; border-collapse: collapse; table-layout: fixed; page-break-inside: avoid; break-inside: avoid; }
       .reg-table tr { page-break-inside: avoid; break-inside: avoid; }
       .reg-table col.col-room { width: 5%; }
@@ -536,7 +526,7 @@
     const faLink = '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">';
     return '<!doctype html><html lang="it"><head><meta charset="utf-8"><title>' + escapeHtml(title) +
       '</title>' + faLink + '<style>' + css + '</style></head><body>' +
-      (body.includes('month-title') || body.includes('sheet') ? body : '<div class="month-title">' + escapeHtml(title) + '</div>' + body) +
+      body +
       '</body></html>';
   }
 
@@ -598,17 +588,16 @@
 
     const registroTable = buildRegistroTable(year, month, rooms, reservations);
     const spiaggiaBlock = buildSpiaggiaMonthBlock(year, month, umbrellas, assignments);
-    const spiaggiaWithLabel = spiaggiaBlock.replace(
+    // Strip the in-body month title that buildSpiaggiaMonthBlock adds
+    // (CSS hides .month-title anyway, but cleaner to drop the markup).
+    const spiaggiaStripped = spiaggiaBlock.replace(
       /<div class="month-title">[\s\S]*?<\/div>/,
-      '<div class="month-title">' + escapeHtml(spiaggiaTitle) + '</div>'
+      ''
     );
 
     const body =
-      '<div class="page page-registro">' +
-        '<div class="month-title">' + escapeHtml(registroTitle) + '</div>' +
-        registroTable +
-      '</div>' +
-      '<div class="page page-spiaggia">' + spiaggiaWithLabel + '</div>';
+      '<div class="page page-registro">' + registroTable + '</div>' +
+      '<div class="page page-spiaggia">' + spiaggiaStripped + '</div>';
 
     const css = registroCss(dayCount, dims) + `
       .page { page-break-after: always; break-after: page; }
